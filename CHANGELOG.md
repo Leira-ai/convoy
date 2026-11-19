@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.5.0, Stage 4 closed by exception plus the feedback feature (19 Nov 2026)
+
+- Stage 4 (real-user task testing) was closed by an explicit
+  exception from Leira: recruiting 3 to 5 real Agent ID holders was
+  too hard for her right now, so the stage ran as a structured
+  self-test by the builder against the kit's own Part A tasks, plus
+  this feedback feature so real users can report problems once they
+  use the product. The self-test is NOT equivalent to real-user
+  testing and the docs say so plainly: the Developer Mode walk in a
+  tester's own Binance app (task A7) remains unproven on humans
+  until Part B runs after mainnet. Full record in
+  `docs/USER-TEST-KIT.md`.
+- Feedback feature on the page: an always-visible in-flow section
+  with a button opening a dialog with a short form (category:
+  confusing, wrong number, button does not work, suggestion, other;
+  free text; a drop picker). The automatic context (network mode,
+  the drop the report is about, page version, language) is rendered
+  in the dialog before anything is sent, and the dialog states up
+  front that the feedback becomes a public GitHub issue. Sending
+  composes a draft and opens the prefilled new-issue page of this
+  repo; a copy-text button is the fallback. No backend, and no
+  personal data is requested. A matching issue template lives in
+  `.github/ISSUE_TEMPLATE/feedback.md`. The feature was added to
+  `docs/SCOPE-FREEZE.md` before it was built, per that file's own
+  change process.
+
 ## 0.4.0, Stage 3: data layer calibration (19 Nov 2026)
 
 - Counter adapters for exactly three proven drop patterns

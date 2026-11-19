@@ -99,6 +99,10 @@ const CONFIG = Object.assign({}, NETWORKS[NETWORK_MODE], {
   isTestnet: NETWORK_MODE === "testnet",
 });
 
+// Page release version, kept in step with CHANGELOG.md. It rides in
+// the feedback context so a report names the exact page it came from.
+const PAGE_VERSION = "0.5.0";
+
 const STRINGS = {
   id: {
     connect: "Hubungkan Wallet", disconnect: "Putuskan", switchChain: "Pindah ke BNB Chain",
@@ -171,6 +175,7 @@ const STRINGS = {
     burnDone: "Kuota proyek ini sudah habis terbaca dari kontraknya.",
     eta: "Perkiraan habis",
     etaRange: "sekitar {a} sampai {b}",
+    etaSingle: "sekitar {a}",
     stOpen: "Sedang dibuka", stUpcoming: "Belum dibuka", stClosed: "Sudah tutup", stUnknown: "Waktu belum diumumkan",
     opensAt: "Buka", closesAt: "Tutup",
     dropContract: "Kontrak drop",
@@ -206,6 +211,26 @@ const STRINGS = {
     featuredCaption: "Drop dengan antrean terpanjang saat ini, dibaca langsung dari kontrak ConvoySignal testnet.",
     queuePeople: "orang nyata antre",
     relIn: "lagi", relAgo: "yang lalu",
+    fbTitle: "Beri masukan",
+    fbBody: "Ada yang membingungkan, angka yang terasa salah, atau tombol yang tidak jalan? Ceritakan di sini. Masukanmu membantu Convoy diperbaiki untuk semua pemburu.",
+    fbOpen: "Tulis masukan",
+    fbPublic: "Masukan dikirim sebagai issue publik di repo GitHub Convoy: siapa pun bisa membacanya. Jangan tulis kunci privat, frasa pemulihan, kata sandi, atau data pribadi apa pun di masukanmu.",
+    fbCategory: "Kategori",
+    fbCatConfusing: "Bingung", fbCatWrongNumber: "Angka salah", fbCatButton: "Tombol tidak jalan", fbCatSuggestion: "Saran", fbCatOther: "Lainnya",
+    fbDrop: "Tentang drop", fbDropGeneral: "Umum, bukan tentang drop tertentu",
+    fbMessage: "Isi masukan",
+    fbMessagePh: "Ceritakan apa yang kamu lihat, apa yang kamu harapkan, dan di bagian mana itu terjadi.",
+    fbContextTitle: "Konteks yang ikut terkirim, terbuka untuk kamu periksa",
+    fbContextLine: "Jaringan: {net} · Versi halaman: {ver} · Bahasa: {lang}",
+    fbContextDrop: "Drop: {label} ({addr})",
+    fbContextNoDrop: "Drop: umum",
+    fbCopy: "Salin teks masukan",
+    fbSend: "Buka issue di GitHub",
+    fbNeedMessage: "Tulis isi masukannya dulu, satu kalimat pun cukup.",
+    fbCopied: "Teks masukan disalin. Tempel di mana pun kamu mau, misalnya issue GitHub Convoy.",
+    fbOpened: "Draf issue dibuka di tab baru. Periksa isinya di GitHub, lalu tekan tombol kirim di sana untuk menerbitkannya.",
+    fbIssueCat: "Kategori", fbIssueTime: "Waktu", fbIssuePrefix: "Masukan",
+    fbNetTestnet: "BSC Testnet (97)", fbNetMainnet: "BNB Chain mainnet (56)",
   },
   en: {
     connect: "Connect Wallet", disconnect: "Disconnect", switchChain: "Switch to BNB Chain",
@@ -278,6 +303,7 @@ const STRINGS = {
     burnDone: "This project quota reads as fully used from its contract.",
     eta: "Estimated to run out",
     etaRange: "about {a} to {b}",
+    etaSingle: "about {a}",
     stOpen: "Open now", stUpcoming: "Not open yet", stClosed: "Closed", stUnknown: "Time not announced",
     opensAt: "Opens", closesAt: "Closes",
     dropContract: "Drop contract",
@@ -313,6 +339,26 @@ const STRINGS = {
     featuredCaption: "The drop with the longest queue right now, read directly from the ConvoySignal testnet contract.",
     queuePeople: "real people queueing",
     relIn: "in", relAgo: "ago",
+    fbTitle: "Send feedback",
+    fbBody: "Something confusing, a number that looks wrong, or a button that does nothing? Tell us here. Your feedback helps fix Convoy for every hunter.",
+    fbOpen: "Write feedback",
+    fbPublic: "Feedback is sent as a public issue in the Convoy GitHub repo: anyone can read it. Never write a private key, recovery phrase, password, or any personal data in your feedback.",
+    fbCategory: "Category",
+    fbCatConfusing: "Confusing", fbCatWrongNumber: "Wrong number", fbCatButton: "Button does not work", fbCatSuggestion: "Suggestion", fbCatOther: "Other",
+    fbDrop: "About which drop", fbDropGeneral: "General, not about a specific drop",
+    fbMessage: "Your feedback",
+    fbMessagePh: "Tell us what you saw, what you expected, and where it happened.",
+    fbContextTitle: "Context sent along, open for you to check",
+    fbContextLine: "Network: {net} · Page version: {ver} · Language: {lang}",
+    fbContextDrop: "Drop: {label} ({addr})",
+    fbContextNoDrop: "Drop: general",
+    fbCopy: "Copy feedback text",
+    fbSend: "Open issue on GitHub",
+    fbNeedMessage: "Write your feedback first, one sentence is enough.",
+    fbCopied: "Feedback text copied. Paste it anywhere you like, for example a Convoy GitHub issue.",
+    fbOpened: "The issue draft opened in a new tab. Check its content on GitHub, then press the submit button there to publish it.",
+    fbIssueCat: "Category", fbIssueTime: "Time", fbIssuePrefix: "Feedback",
+    fbNetTestnet: "BSC Testnet (97)", fbNetMainnet: "BNB Chain mainnet (56)",
   },
 };
 
@@ -321,6 +367,7 @@ let account = null;
 let chainOk = false;
 let provider = null;
 let providerWired = false;
+const fbState = { open: false };
 
 const $ = (id) => document.getElementById(id);
 
@@ -346,6 +393,12 @@ function applyLang(next) {
   renderBoard();
   renderMine();
   updateFooter();
+  const fbTa = $("fb-message");
+  if (fbTa) fbTa.placeholder = t("fbMessagePh");
+  if (fbState.open) {
+    buildFeedbackDropOptions(true);
+    updateFeedbackContext();
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -1290,17 +1343,25 @@ function burnParas(entry, cls) {
   } else if (info.kind === "done") {
     rateRow.appendChild(document.createTextNode(t("burnDone")));
   } else {
-    const rate = info.rateMin === info.rateMax
-      ? info.rateMin.toFixed(2)
-      : info.rateMin.toFixed(2) + " – " + info.rateMax.toFixed(2);
+    // A range is shown only when its two ends actually differ once
+    // formatted. With a single sample interval the honest shape is
+    // one hedged figure, not a range whose ends are the same point
+    // (Stage 4 self-test finding F-01).
+    const rMin = info.rateMin.toFixed(2);
+    const rMax = info.rateMax.toFixed(2);
+    const rate = rMin === rMax ? rMin : rMin + " – " + rMax;
     rateRow.appendChild(document.createTextNode(rate + " " + t("burnPerMin")));
   }
   out.push(rateRow);
   if (info.kind === "live" && info.etaMin !== undefined) {
     const etaRow = el("p", cls);
     etaRow.appendChild(el("strong", null, t("eta") + ": "));
+    const fEtaMin = formatDuration(info.etaMin);
+    const fEtaMax = formatDuration(info.etaMax);
     etaRow.appendChild(document.createTextNode(
-      t("etaRange").replace("{a}", formatDuration(info.etaMin)).replace("{b}", formatDuration(info.etaMax))
+      fEtaMin === fEtaMax
+        ? t("etaSingle").replace("{a}", fEtaMin)
+        : t("etaRange").replace("{a}", fEtaMin).replace("{b}", fEtaMax)
     ));
     out.push(etaRow);
   }
@@ -1761,6 +1822,159 @@ async function confirmSheet() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Feedback (Stage 4 exception addition, ordered by Leira 19 Nov      */
+/* 2026): the form composes a public GitHub issue draft in the        */
+/* convoy repo. There is no backend and nothing is sent from this     */
+/* page: the send button opens the prefilled new-issue page and the   */
+/* user presses submit on GitHub itself. The automatic context        */
+/* (network mode, the drop the report is about, page version,         */
+/* language) is rendered in the dialog before anything is opened,     */
+/* and the exact same context text goes into the issue body. No       */
+/* personal data is requested; the dialog warns that the issue is     */
+/* public before the user can send.                                   */
+/* ------------------------------------------------------------------ */
+
+const FEEDBACK_REPO = "https://github.com/Leira-ai/convoy";
+
+function feedbackCategoryLabel() {
+  const map = {
+    confusing: "fbCatConfusing",
+    "wrong-number": "fbCatWrongNumber",
+    "button-broken": "fbCatButton",
+    suggestion: "fbCatSuggestion",
+    other: "fbCatOther",
+  };
+  return t(map[$("fb-category").value] || "fbCatOther");
+}
+
+function feedbackDropEntry() {
+  const v = $("fb-drop").value;
+  if (v === "" || !board || !board.drops) return null;
+  return board.drops.find((e) => String(e.id) === v) || null;
+}
+
+function buildFeedbackDropOptions(keepValue) {
+  const sel = $("fb-drop");
+  const prev = keepValue ? sel.value : null;
+  sel.textContent = "";
+  const gen = document.createElement("option");
+  gen.value = "";
+  gen.textContent = t("fbDropGeneral");
+  sel.appendChild(gen);
+  if (board && board.drops) {
+    for (const entry of board.drops) {
+      const opt = document.createElement("option");
+      opt.value = String(entry.id);
+      opt.textContent = entry.drop.label;
+      sel.appendChild(opt);
+    }
+  }
+  if (prev !== null && [...sel.options].some((o) => o.value === prev)) {
+    sel.value = prev;
+  } else if (board && board.drops && board.drops.length > 0) {
+    // Default: the featured drop, the longest queue, the same drop
+    // the hero plate shows, so a report names what the user saw first.
+    const feat = board.drops.reduce(
+      (a, b) => (b.drop.signalCount > a.drop.signalCount ? b : a),
+      board.drops[0]
+    );
+    sel.value = String(feat.id);
+  }
+}
+
+function updateFeedbackContext() {
+  const entry = feedbackDropEntry();
+  let line = t("fbContextLine")
+    .replace("{net}", CONFIG.isTestnet ? t("fbNetTestnet") : t("fbNetMainnet"))
+    .replace("{ver}", PAGE_VERSION)
+    .replace("{lang}", lang.toUpperCase());
+  line +=
+    " · " +
+    (entry
+      ? t("fbContextDrop")
+          .replace("{label}", entry.drop.label)
+          .replace("{addr}", entry.drop.dropContract)
+      : t("fbContextNoDrop"));
+  $("fb-context").textContent = line;
+}
+
+function composeFeedback() {
+  const cat = feedbackCategoryLabel();
+  const entry = feedbackDropEntry();
+  const msg = $("fb-message").value.trim();
+  let title = t("fbIssuePrefix") + ": " + cat + (entry ? " · " + entry.drop.label : "");
+  if (title.length > 140) title = title.slice(0, 137) + "...";
+  const body = [
+    "**" + t("fbIssueCat") + ":** " + cat,
+    "",
+    "**" + t("fbContextTitle") + ":** " + $("fb-context").textContent,
+    "",
+    "**" + t("fbIssueTime") + ":** " + new Date().toISOString(),
+    "",
+    "---",
+    "",
+    msg,
+  ].join("\n");
+  return { title, body };
+}
+
+function feedbackMsg(text, cls) {
+  const box = $("fb-msg");
+  box.textContent = text;
+  box.className = "form-msg" + (cls ? " " + cls : "");
+}
+
+function openFeedback() {
+  buildFeedbackDropOptions(false);
+  updateFeedbackContext();
+  feedbackMsg("", "");
+  fbState.open = true;
+  $("feedback-dialog").hidden = false;
+  $("fb-backdrop").hidden = false;
+  $("fb-dialog-h").focus();
+}
+
+function closeFeedback() {
+  fbState.open = false;
+  $("feedback-dialog").hidden = true;
+  $("fb-backdrop").hidden = true;
+}
+
+function feedbackNeedsMessage() {
+  feedbackMsg(t("fbNeedMessage"), "is-error");
+  $("fb-message").focus();
+  return false;
+}
+
+function sendFeedback() {
+  if (!$("fb-message").value.trim()) return feedbackNeedsMessage();
+  updateFeedbackContext();
+  const { title, body } = composeFeedback();
+  const url =
+    FEEDBACK_REPO +
+    "/issues/new?title=" +
+    encodeURIComponent(title) +
+    "&body=" +
+    encodeURIComponent(body) +
+    "&labels=feedback";
+  window.open(url, "_blank", "noopener");
+  feedbackMsg(t("fbOpened"), "is-ok");
+}
+
+async function copyFeedback() {
+  if (!$("fb-message").value.trim()) return feedbackNeedsMessage();
+  updateFeedbackContext();
+  const { title, body } = composeFeedback();
+  const text = title + "\n\n" + body;
+  try {
+    await navigator.clipboard.writeText(text);
+    feedbackMsg(t("fbCopied"), "is-ok");
+  } catch (e) {
+    feedbackMsg(text, "");
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Wiring and init.                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -1774,6 +1988,16 @@ $("refresh-btn").addEventListener("click", refreshBoard);
 $("sheet-cancel").addEventListener("click", closeSheet);
 $("sheet-confirm").addEventListener("click", confirmSheet);
 $("sheet-backdrop").addEventListener("click", closeSheet);
+$("feedback-btn").addEventListener("click", openFeedback);
+$("fb-cancel").addEventListener("click", closeFeedback);
+$("fb-backdrop").addEventListener("click", closeFeedback);
+$("fb-send").addEventListener("click", sendFeedback);
+$("fb-copy").addEventListener("click", copyFeedback);
+$("fb-drop").addEventListener("change", updateFeedbackContext);
+$("fb-category").addEventListener("change", () => feedbackMsg("", ""));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && fbState.open) closeFeedback();
+});
 $("lang-id").addEventListener("click", () => applyLang("id"));
 $("lang-en").addEventListener("click", () => applyLang("en"));
 $("theme-toggle").addEventListener("click", () => {

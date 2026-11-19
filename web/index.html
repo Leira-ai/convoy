@@ -127,6 +127,12 @@
     <h2 id="meaning-h" data-i18n="meaningTitle">Apa arti angka di papan ini?</h2>
     <p data-i18n="meaningBody">Sinyal adalah pernyataan minat dari pemegang Agent ID, bukan jaminan ia akan mint dan bukan janji hasil apa pun. Angka terminting dibaca dari kontrak proyek itu sendiri; proyek yang counternya tidak bisa diverifikasi ditandai tidak terdata, bukan ditebak. Convoy bukan penilaian keamanan: antrean yang panjang tidak berarti kontrak dropnya aman.</p>
   </section>
+
+  <section class="card" id="feedback-panel" aria-labelledby="fb-h">
+    <h2 id="fb-h" data-i18n="fbTitle">Beri masukan</h2>
+    <p class="hint" data-i18n="fbBody">Ada yang membingungkan, angka yang terasa salah, atau tombol yang tidak jalan? Ceritakan di sini. Masukanmu membantu Convoy diperbaiki untuk semua pemburu.</p>
+    <button type="button" id="feedback-btn" class="btn btn-ghost" data-i18n="fbOpen">Tulis masukan</button>
+  </section>
 </main>
 
 <footer class="footer">
@@ -146,6 +152,40 @@
   </div>
   <p class="form-msg" id="sheet-msg" role="status" aria-live="polite"></p>
   <p class="sheet-tx" id="sheet-tx" hidden></p>
+</section>
+
+<div id="fb-backdrop" class="sheet-backdrop" hidden></div>
+<section id="feedback-dialog" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="fb-dialog-h">
+  <h2 id="fb-dialog-h" tabindex="-1" data-i18n="fbTitle">Beri masukan</h2>
+  <p class="note" data-i18n="fbPublic">Masukan dikirim sebagai issue publik di repo GitHub Convoy: siapa pun bisa membacanya. Jangan tulis kunci privat, frasa pemulihan, kata sandi, atau data pribadi apa pun di masukanmu.</p>
+  <div class="field">
+    <label for="fb-category" data-i18n="fbCategory">Kategori</label>
+    <select id="fb-category">
+      <option value="confusing" data-i18n="fbCatConfusing">Bingung</option>
+      <option value="wrong-number" data-i18n="fbCatWrongNumber">Angka salah</option>
+      <option value="button-broken" data-i18n="fbCatButton">Tombol tidak jalan</option>
+      <option value="suggestion" data-i18n="fbCatSuggestion">Saran</option>
+      <option value="other" data-i18n="fbCatOther">Lainnya</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="fb-drop" data-i18n="fbDrop">Tentang drop</label>
+    <select id="fb-drop"></select>
+  </div>
+  <div class="field">
+    <label for="fb-message" data-i18n="fbMessage">Isi masukan</label>
+    <textarea id="fb-message" rows="5" maxlength="2000"></textarea>
+  </div>
+  <div class="field">
+    <span class="field-label" data-i18n="fbContextTitle">Konteks yang ikut terkirim, terbuka untuk kamu periksa</span>
+    <p class="fb-context" id="fb-context"></p>
+  </div>
+  <div class="sheet-actions">
+    <button type="button" id="fb-cancel" class="btn btn-ghost" data-i18n="cancel">Batal</button>
+    <button type="button" id="fb-copy" class="btn btn-ghost" data-i18n="fbCopy">Salin teks masukan</button>
+    <button type="button" id="fb-send" class="btn btn-primary" data-i18n="fbSend">Buka issue di GitHub</button>
+  </div>
+  <p class="form-msg" id="fb-msg" role="status" aria-live="polite"></p>
 </section>
 
 <script src="app.js" defer></script>

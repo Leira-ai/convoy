@@ -364,6 +364,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .sheet-rows dt { color: var(--text-muted); }
 .sheet-rows dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: break-word; }
 .sheet-actions { display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-3); }
+.sheet-actions { flex-wrap: wrap; }
+
+/* ---------- Formulir (dialog masukan) ---------- */
+.field { display: grid; gap: var(--space-1); margin-bottom: var(--space-3); }
+.field label, .field-label { font-weight: 600; font-size: var(--text-0); }
+.field select, .field textarea {
+  width: 100%; box-sizing: border-box; font: inherit; color: var(--text);
+  background: var(--surface-muted); border: 1px solid var(--border);
+  border-radius: var(--radius-s); padding: var(--space-2);
+}
+.field textarea { resize: vertical; }
+.fb-context { margin: 0; color: var(--text-muted); font-size: var(--text-0); overflow-wrap: break-word; }
 
 @media (min-width: 768px) {
   .page { padding-top: var(--space-5); }
