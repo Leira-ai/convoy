@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Convoy: Antrean Drop Dihitung dari Orang Nyata</title>
+<meta name="description" content="Convoy adalah radar antrean drop bergate Agent ID. Sinyal hanya dari pemegang Agent ID, satu nama satu sinyal, jadi angka antreannya hitungan orang nyata.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Convoy">
+<meta property="og:title" content="Convoy: Antrean Drop Dihitung dari Orang Nyata">
+<meta property="og:description" content="Radar antrean drop bergate Agent ID: siapa yang benar-benar antre, berapa cepat kuota terbakar, dan kapan jendela tutup. Sinyal hanya dari pemegang Agent ID.">
+<meta property="og:url" content="https://convoy.utterhq.workers.dev/">
+<meta property="og:image" content="https://convoy.utterhq.workers.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Papan antrean Convoy untuk drop contoh di testnet dengan satu sinyal dari pemegang Agent ID">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Convoy: Antrean Drop Dihitung dari Orang Nyata">
+<meta name="twitter:description" content="Radar antrean drop bergate Agent ID. Satu nama satu sinyal, jadi angka antreannya hitungan orang nyata, bukan wallet duplikat.">
+<meta name="twitter:image" content="https://convoy.utterhq.workers.dev/og.png">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gcC2DzBdpQMZ060zpEiTj05Qf8icJWhMdKc/PnJiYyU='; style-src 'self'; img-src 'self' data:; connect-src 'self' https://bsc-dataseed.binance.org https://bsc-dataseed1.defibit.io https://bsc-rpc.publicnode.com https://bsc-testnet-rpc.publicnode.com https://bsc-testnet-dataseed.bnbchain.org; object-src 'none'; base-uri 'self'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#12181d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#e8ecea" media="(prefers-color-scheme: light)">
+<script>
+(function(){try{var t=localStorage.getItem("convoy-theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">C</span>
+    <span class="brand-name">Convoy</span>
+    <span id="network-badge" class="net-badge" hidden>TESTNET · BSC 97</span>
+  </div>
+  <div class="topbar-actions">
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" id="lang-id" class="seg-btn is-on">ID</button>
+      <button type="button" id="lang-en" class="seg-btn">EN</button>
+    </div>
+    <button type="button" id="theme-toggle" class="icon-btn" aria-label="Tema">◐</button>
+    <button type="button" id="connect-btn" class="btn btn-primary" data-i18n="connect">Hubungkan Wallet</button>
+  </div>
+</header>
+
+<div id="wallet-bar" class="wallet-bar" hidden>
+  <span id="wallet-state" class="wallet-state"></span>
+  <button type="button" id="switch-chain-btn" class="btn btn-ghost" hidden data-i18n="switchChain">Pindah ke BNB Chain</button>
+  <button type="button" id="disconnect-btn" class="btn btn-ghost" data-i18n="disconnect">Putuskan</button>
+</div>
+
+<main class="page">
+  <section class="hero">
+    <h1 data-i18n="headline">Antrean drop, dihitung dari orang nyata.</h1>
+    <p class="lede" data-i18n="lede">Convoy menghitung siapa yang benar-benar berniat ikut drop bergate Agent ID. Sinyal hanya bisa diberikan pemegang Agent ID, satu nama satu sinyal, jadi angka antreannya tidak bisa digelembungkan wallet duplikat.</p>
+
+    <div id="featured-slot">
+      <div class="plate plate-loading" aria-label="Papan antrean drop utama">
+        <p class="plate-status" data-i18n="boardLoading">Membaca papan antrean dari kontrak...</p>
+      </div>
+    </div>
+    <p class="plate-caption" id="featured-caption"></p>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#board-panel" data-i18n="ctaBoard">Lihat radar drop</a>
+      <a class="btn btn-ghost" href="#mine-panel" data-i18n="ctaMine">Antrean saya</a>
+    </div>
+    <p id="deploy-note" class="note" data-i18n="deployNote">Status: kontrak ConvoySignal belum dideploy di BNB Chain mainnet. Halaman ini menampilkan penjelasan produk; belum ada sinyal yang bisa diberikan di mainnet dan tidak ada angka yang ditampilkan sebagai data.</p>
+  </section>
+
+  <ol class="steps">
+    <li class="step">
+      <span class="step-num" aria-hidden="true">1</span>
+      <div>
+        <p class="step-title" data-i18n="step1T">Drop terdaftar di papan</p>
+        <p class="step-body" data-i18n="step1B">Proyek bergate Agent ID mendaftarkan kontrak dropnya, atau pemburu yang menemukannya lebih dulu.</p>
+      </div>
+    </li>
+    <li class="step">
+      <span class="step-num" aria-hidden="true">2</span>
+      <div>
+        <p class="step-title" data-i18n="step2T">Pemegang memberi sinyal</p>
+        <p class="step-body" data-i18n="step2B">Satu panggilan ringan tanpa dana dan tanpa approval. Kontrak menolak siapa pun yang tidak memegang Agent ID.</p>
+      </div>
+    </li>
+    <li class="step">
+      <span class="step-num" aria-hidden="true">3</span>
+      <div>
+        <p class="step-title" data-i18n="step3T">Antrean dan bakar terbaca</p>
+        <p class="step-body" data-i18n="step3B">Semua orang melihat berapa orang nyata yang antre dan berapa cepat kuota proyek terbakar, dari kontrak langsung.</p>
+      </div>
+    </li>
+  </ol>
+
+  <section class="card" id="board-panel" aria-labelledby="board-h">
+    <div class="board-head">
+      <h2 id="board-h" data-i18n="boardTitle">Radar drop</h2>
+      <button type="button" id="refresh-btn" class="btn btn-ghost btn-small" data-i18n="refresh">Segarkan</button>
+    </div>
+    <p class="hint" data-i18n="boardHint">Angka sinyal adalah minat pemegang Agent ID. Angka terminting adalah kejadian nyata dari kontrak proyek. Keduanya selalu ditampilkan terpisah.</p>
+    <div class="chips" id="filter-chips" role="group" aria-label="Filter"></div>
+    <p class="count-line" id="count-line" role="status" aria-live="polite"></p>
+    <div id="drop-list" class="drop-list">
+      <div class="state state-empty">
+        <p class="state-title" data-i18n="boardLoadingTitle">Papan sedang dibaca.</p>
+        <p class="state-body" data-i18n="boardLoading">Membaca papan antrean dari kontrak...</p>
+      </div>
+    </div>
+    <p class="form-msg" id="board-msg" role="status" aria-live="polite"></p>
+    <p class="asof" id="board-asof"></p>
+  </section>
+
+  <section class="card" id="mine-panel" aria-labelledby="mine-h">
+    <h2 id="mine-h" data-i18n="mineTitle">Antrean saya</h2>
+    <div id="mine-list" class="mine-list">
+      <div class="state state-empty">
+        <p class="state-title" data-i18n="mineEmptyTitle">Hubungkan wallet untuk melihat antreanmu.</p>
+        <p class="state-body" data-i18n="mineEmptyBody">Sesudah terhubung, panel ini menunjukkan drop mana yang sudah kamu beri sinyal dan sisa jatah gratis atas namamu bila kontrak proyeknya menyediakan bacaan itu.</p>
+      </div>
+    </div>
+    <p class="form-msg" id="mine-msg" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="disclosure" aria-labelledby="meaning-h">
+    <h2 id="meaning-h" data-i18n="meaningTitle">Apa arti angka di papan ini?</h2>
+    <p data-i18n="meaningBody">Sinyal adalah pernyataan minat dari pemegang Agent ID, bukan jaminan ia akan mint dan bukan janji hasil apa pun. Angka terminting dibaca dari kontrak proyek itu sendiri; proyek yang counternya tidak bisa diverifikasi ditandai tidak terdata, bukan ditebak. Convoy bukan penilaian keamanan: antrean yang panjang tidak berarti kontrak dropnya aman.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <p><span data-i18n="footContract">Kontrak sinyal:</span> <span id="contract-line">belum dideploy di mainnet</span></p>
+  <p><span data-i18n="footRegistry">Registry Agent ID:</span> <span id="registry-line">0x60b9262456de011f7d15a54cdd8c48baaa8b022f</span></p>
+  <p data-i18n="footPrivacy">Convoy tidak mencatat alamat wallet untuk analitik.</p>
+</footer>
+
+<div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+<section id="confirm-sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-h">
+  <h2 id="sheet-h" tabindex="-1" data-i18n="sheetTitle">Periksa dulu sebelum tanda tangan</h2>
+  <dl class="sheet-rows" id="sheet-rows"></dl>
+  <p class="note" data-i18n="sheetNote">Sinyal tidak memindahkan dana apa pun. Yang kamu bayar hanya biaya jaringan untuk mencatat sinyalmu.</p>
+  <div class="sheet-actions">
+    <button type="button" id="sheet-cancel" class="btn btn-ghost" data-i18n="cancel">Batal</button>
+    <button type="button" id="sheet-confirm" class="btn btn-primary" data-i18n="confirmSignal">Kirim lewat wallet</button>
+  </div>
+  <p class="form-msg" id="sheet-msg" role="status" aria-live="polite"></p>
+  <p class="sheet-tx" id="sheet-tx" hidden></p>
+</section>
+
+<script src="app.js" defer></script>
+</body>
+</html>
