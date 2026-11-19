@@ -156,7 +156,12 @@ async function runSeed(seed, artifacts) {
   const rand = rng(seed);
   const server = ganache.server({ logging: { quiet: true } });
   await server.listen(0);
-  const provider = new ethers.JsonRpcProvider(`http://127.0.0.1:${server.address().port}`);
+  // In-process EIP-1193 transport: the HTTP listener falls back to a
+  // degraded transport on this Node build (see the uws warning when
+  // run-tests.js starts), which made each of the ~50 reads per step a
+  // slow round trip. The checks are identical either way; only the
+  // wire changes.
+  const provider = new ethers.BrowserProvider(server.provider);
   const signers = await Promise.all([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => provider.getSigner(i)));
   const deployer = signers[0];
   const holders = signers.slice(1, 6);
