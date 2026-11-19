@@ -40,7 +40,10 @@
       <button type="button" id="lang-id" class="seg-btn is-on">ID</button>
       <button type="button" id="lang-en" class="seg-btn">EN</button>
     </div>
-    <button type="button" id="theme-toggle" class="icon-btn" aria-label="Tema">◐</button>
+    <button type="button" id="theme-toggle" class="theme-btn" aria-label="Tema saat ini: Gelap. Ganti tema">
+      <span id="theme-icon" aria-hidden="true">☾</span>
+      <span id="theme-label">Gelap</span>
+    </button>
     <button type="button" id="connect-btn" class="btn btn-primary" data-i18n="connect">Hubungkan Wallet</button>
   </div>
 </header>
@@ -100,6 +103,10 @@
       <button type="button" id="refresh-btn" class="btn btn-ghost btn-small" data-i18n="refresh">Segarkan</button>
     </div>
     <p class="hint" data-i18n="boardHint">Angka sinyal adalah minat pemegang Agent ID. Angka terminting adalah kejadian nyata dari kontrak proyek. Keduanya selalu ditampilkan terpisah.</p>
+    <label class="testdata-toggle" for="hide-testdata">
+      <input type="checkbox" id="hide-testdata" checked>
+      <span data-i18n="hideTestData">Sembunyikan data uji</span>
+    </label>
     <div class="chips" id="filter-chips" role="group" aria-label="Filter"></div>
     <p class="count-line" id="count-line" role="status" aria-live="polite"></p>
     <div id="drop-list" class="drop-list">

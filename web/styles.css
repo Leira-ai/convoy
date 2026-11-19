@@ -133,11 +133,15 @@ h2 { font-size: var(--text-2); line-height: 1.25; margin: 0 0 var(--space-2); le
 }
 .seg-btn.is-on { background: var(--surface-raised); color: var(--text); font-weight: 700; }
 
-.icon-btn {
-  width: 44px; height: 44px; border-radius: var(--radius-pill);
+.theme-btn {
+  min-width: 92px; height: 44px; border-radius: var(--radius-pill);
   border: 1px solid var(--border); background: var(--surface);
-  color: var(--text); cursor: pointer; font-size: var(--text-2);
+  color: var(--text); cursor: pointer; font: inherit; font-size: var(--text-0);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1);
+  padding: 0 var(--space-2); white-space: nowrap;
 }
+.theme-btn #theme-icon { font-size: var(--text-1); line-height: 1; }
+.theme-btn #theme-label { font-weight: 700; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -259,6 +263,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .board-head h2 { margin: 0; }
 .hint { color: var(--text-muted); margin: 0 0 var(--space-3); font-size: var(--text-0); }
 
+.testdata-toggle {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 44px; margin: 0 0 var(--space-2); cursor: pointer;
+  color: var(--text); font-size: var(--text-0); font-weight: 600;
+}
+.testdata-toggle input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-2); }
 .chip {
   border: 1px solid var(--border); border-radius: var(--radius-pill);
@@ -280,9 +290,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   padding: var(--space-3); background: var(--surface-raised);
   display: grid; gap: var(--space-2);
 }
-.drop-top { display: flex; justify-content: space-between; gap: var(--space-2); align-items: baseline; }
+.drop-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); align-items: center; }
 .drop-label { font-weight: 700; overflow-wrap: break-word; min-width: 0; }
-.drop-status { font-size: var(--text-0); font-weight: 700; white-space: nowrap; }
+.drop-status {
+  font-size: var(--text-0); font-weight: 800; white-space: nowrap;
+  border: 1px solid currentColor; border-radius: var(--radius-pill); padding: 2px var(--space-2);
+}
+.test-badge {
+  font-size: var(--text-0); font-weight: 800; white-space: nowrap;
+  color: var(--warn); border: 1px solid var(--warn); border-radius: var(--radius-xs);
+  padding: 2px var(--space-2);
+}
+.drop-card.is-next { border-color: var(--warn); box-shadow: 0 0 0 2px var(--warn), var(--shadow); }
 .st-open { color: var(--ok); }
 .st-soon { color: var(--warn); }
 .st-closed { color: var(--text-muted); }
@@ -304,6 +323,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .dzone-note { margin: 0; font-size: var(--text-0); color: var(--text-muted); overflow-wrap: break-word; }
 .dzone-missing { margin: 0; font-size: var(--text-1); font-weight: 800; }
 
+.burn-panel {
+  border-top: 2px dashed var(--border); background: var(--surface-muted);
+  border-radius: var(--radius-s); padding: var(--space-2);
+  display: grid; gap: var(--space-1);
+}
 .drop-burn { margin: 0; font-size: var(--text-0); color: var(--text-muted); }
 .drop-burn strong { color: var(--text); }
 .drop-actions { display: flex; gap: var(--space-2); margin-top: var(--space-1); }
@@ -392,6 +416,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   .brand-name { display: none; }
   .net-badge { display: none; }
   .topbar-actions { gap: var(--space-1); }
+  .theme-btn { min-width: 78px; padding: 0 var(--space-1); }
   .seg-btn { padding: 0 var(--space-2); font-size: var(--text-0); }
   #connect-btn { padding: 0 var(--space-2); font-size: var(--text-0); }
   h1 { font-size: var(--text-3); }

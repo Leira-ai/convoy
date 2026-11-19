@@ -26,7 +26,7 @@
  * the kuota pattern (quotaOf + mintedBy, the Agent ID gated mint
  * family), the suplai pattern (ERC-721 style totalSupply), or no
  * recognised read at all. When no pattern matches, the panel says
- * TIDAK TERDATA (not recorded) in words and never shows a guessed
+ * there is no public reading in words and never shows a guessed
  * number. The two numbers are rendered in separate zones and never
  * mixed.
  *
@@ -101,7 +101,7 @@ const CONFIG = Object.assign({}, NETWORKS[NETWORK_MODE], {
 
 // Page release version, kept in step with CHANGELOG.md. It rides in
 // the feedback context so a report names the exact page it came from.
-const PAGE_VERSION = "0.5.0";
+const PAGE_VERSION = "0.6.0";
 
 const STRINGS = {
   id: {
@@ -118,7 +118,9 @@ const STRINGS = {
     step3T: "Antrean dan bakar terbaca",
     step3B: "Semua orang melihat berapa orang nyata yang antre dan berapa cepat kuota proyek terbakar, dari kontrak langsung.",
     switchChainTn: "Pindah ke BSC Testnet", onChainTn: "BSC Testnet", onChain: "BNB Chain",
-    boardTitle: "Radar drop", refresh: "Segarkan",
+    boardTitle: "Radar drop", refresh: "Segarkan", hideTestData: "Sembunyikan data uji",
+    themeDark: "Gelap", themeLight: "Terang", themeCurrent: "Tema saat ini: {mode}. Ganti tema",
+    testDataBadge: "DATA UJI KALIBRASI", nextUp: "Berikutnya",
     boardHint: "Angka sinyal adalah minat pemegang Agent ID. Angka terminting adalah kejadian nyata dari kontrak proyek. Keduanya selalu ditampilkan terpisah.",
     boardLoadingTitle: "Papan sedang dibaca.",
     boardLoading: "Membaca papan antrean dari kontrak...",
@@ -128,7 +130,7 @@ const STRINGS = {
     boardEmptyBody: "Begitu proyek bergate Agent ID mendaftarkan dropnya di kontrak Convoy, antreannya tampil di sini.",
     notDeployedTitle: "Papan mainnet belum live.",
     notDeployedBody: "Kontrak ConvoySignal belum dideploy di BNB Chain mainnet, jadi belum ada antrean yang bisa ditampilkan. Mode testnet halaman ini menampilkan papan yang bekerja penuh.",
-    chipAll: "Semua", chipOpen: "Sedang dibuka", chipUpcoming: "Belum dibuka", chipClosed: "Sudah tutup",
+    chipAll: "Semua", chipOpen: "Buka", chipUpcoming: "Belum dibuka", chipClosed: "Tutup",
     showing: "Menampilkan {x} dari {y} drop",
     filterNoneTitle: "Tidak ada drop pada saringan ini.",
     filterNoneBody: "Longgarkan saringan untuk melihat drop lain di papan.",
@@ -138,7 +140,7 @@ const STRINGS = {
     mineNoneTitle: "Kamu belum memberi sinyal di drop mana pun.",
     mineNoneBody: "Tekan Ikut antre pada kartu drop untuk mencatat sinyal pertamamu. Sinyal selalu bisa ditarik lagi.",
     meaningTitle: "Apa arti angka di papan ini?",
-    meaningBody: "Sinyal adalah pernyataan minat dari pemegang Agent ID, bukan jaminan ia akan mint dan bukan janji hasil apa pun. Angka terminting dibaca dari kontrak proyek itu sendiri; proyek yang counternya tidak bisa diverifikasi ditandai tidak terdata, bukan ditebak. Convoy bukan penilaian keamanan: antrean yang panjang tidak berarti kontrak dropnya aman.",
+    meaningBody: "Sinyal adalah pernyataan minat dari pemegang Agent ID, bukan jaminan ia akan mint dan bukan janji hasil apa pun. Angka terminting dibaca dari kontrak proyek itu sendiri; proyek yang counternya tidak bisa diverifikasi ditandai tidak ada bacaan publik, bukan ditebak. Convoy bukan penilaian keamanan: antrean yang panjang tidak berarti kontrak dropnya aman.",
     footContract: "Kontrak sinyal:", footRegistry: "Registry Agent ID:",
     footPrivacy: "Convoy tidak mencatat alamat wallet untuk analitik.",
     notDeployedFooter: "belum dideploy di mainnet",
@@ -153,10 +155,10 @@ const STRINGS = {
     connectedAs: "Terhubung:",
     zoneSignal: "Sinyal antre", zoneSignalNote: "pemegang Agent ID yang menyatakan minat",
     zoneMinted: "Sudah terminting", zoneMintedNote: "kejadian nyata dari kontrak proyek",
-    notRecorded: "Tidak terdata",
-    notRecordedWhy: "Kontrak proyek ini tidak menyediakan bacaan counter yang bisa diverifikasi, jadi Convoy tidak menebak angkanya.",
+    notRecorded: "Tidak ada bacaan publik",
+    notRecordedWhy: "Kontrak ini tidak menerbitkan angka terminting, jadi Convoy tidak menampilkannya. Ini bukan angka nol.",
     quotaLeft: "Sisa jatah gratis kamu",
-    quotaNotRecorded: "Jatah per alamat tidak terdata di kontrak proyek ini.",
+    quotaNotRecorded: "Tidak ada bacaan publik untuk jatah per alamat. Kontrak ini tidak menerbitkan sisa jatah per alamat, jadi Convoy tidak menampilkannya.",
     quotaOf: "dari total jatah",
     srcLabel: "Sumber:",
     srcDual: "dua RPC cocok",
@@ -170,13 +172,19 @@ const STRINGS = {
     quotaSrc: "Sumber: {fns} · dibaca {when}",
     burnRate: "Laju bakar",
     burnPerMin: "mint per menit",
-    burnWarming: "Laju bakar mulai terbaca sesudah bacaan berikutnya; satu bacaan belum cukup untuk menghitung laju.",
-    burnStill: "Belum ada mint baru selama halaman ini terbuka, jadi laju bakarnya nol untuk sekarang.",
-    burnDone: "Kuota proyek ini sudah habis terbaca dari kontraknya.",
+    burnLoading: "Belum bisa dihitung: bacaan counter pertama belum selesai.",
+    burnNoPublic: "Belum bisa dihitung: tidak ada bacaan publik untuk angka terminting.",
+    burnUnverified: "Belum bisa dihitung: dua bacaan independen berselisih, jadi angkanya disembunyikan.",
+    burnNoSample: "Belum bisa dihitung: belum ada bacaan terminting yang tercatat.",
+    burnOneSample: "Belum bisa dihitung: baru satu bacaan tercatat, menunggu bacaan kedua.",
+    burnShortWindow: "Belum bisa dihitung: dua bacaan tercatat terlalu berdekatan, menunggu jendela sampel minimal 15 detik.",
+    burnWarming: "Belum bisa dihitung: sampelnya belum cukup.",
+    burnStill: "Laju bakar 0 mint per menit pada jendela sampel ini. Perkiraan habis belum bisa dihitung karena belum ada mint baru yang tercatat.",
+    burnDone: "Kuota proyek ini sudah habis terbaca dari kontraknya, jadi tidak ada perkiraan habis yang perlu dihitung.",
     eta: "Perkiraan habis",
     etaRange: "sekitar {a} sampai {b}",
     etaSingle: "sekitar {a}",
-    stOpen: "Sedang dibuka", stUpcoming: "Belum dibuka", stClosed: "Sudah tutup", stUnknown: "Waktu belum diumumkan",
+    stOpen: "Buka", stUpcoming: "Belum buka", stClosed: "Tutup", stUnknown: "Waktu belum diumumkan",
     opensAt: "Buka", closesAt: "Tutup",
     dropContract: "Kontrak drop",
     registrar: "Didaftarkan oleh",
@@ -246,7 +254,9 @@ const STRINGS = {
     step3T: "Queue and burn become readable",
     step3B: "Everyone sees how many real people are queueing and how fast the project quota burns, straight from the contracts.",
     switchChainTn: "Switch to BSC Testnet", onChainTn: "BSC Testnet", onChain: "BNB Chain",
-    boardTitle: "Drop radar", refresh: "Refresh",
+    boardTitle: "Drop radar", refresh: "Refresh", hideTestData: "Hide test data",
+    themeDark: "Dark", themeLight: "Light", themeCurrent: "Current theme: {mode}. Switch theme",
+    testDataBadge: "CALIBRATION TEST DATA", nextUp: "Next up",
     boardHint: "The signal count is Agent ID holder intent. The minted count is what actually happened, read from the project contract. The two are always shown separately.",
     boardLoadingTitle: "The board is being read.",
     boardLoading: "Reading the queue board from the contract...",
@@ -256,7 +266,7 @@ const STRINGS = {
     boardEmptyBody: "Once an Agent ID gated project registers its drop in the Convoy contract, its queue appears here.",
     notDeployedTitle: "The mainnet board is not live yet.",
     notDeployedBody: "The ConvoySignal contract is not deployed on BNB Chain mainnet yet, so there is no queue to show. This page's testnet mode shows the fully working board.",
-    chipAll: "All", chipOpen: "Open now", chipUpcoming: "Not open yet", chipClosed: "Closed",
+    chipAll: "All", chipOpen: "Open", chipUpcoming: "Not open yet", chipClosed: "Closed",
     showing: "Showing {x} of {y} drops",
     filterNoneTitle: "No drops under this filter.",
     filterNoneBody: "Loosen the filter to see other drops on the board.",
@@ -266,7 +276,7 @@ const STRINGS = {
     mineNoneTitle: "You have not signaled any drop yet.",
     mineNoneBody: "Press Join the queue on a drop card to record your first signal. A signal can always be withdrawn.",
     meaningTitle: "What do the numbers on this board mean?",
-    meaningBody: "A signal is a statement of intent from an Agent ID holder, not a guarantee that they will mint and not a promise of any result. The minted count is read from the project contract itself; a project whose counter cannot be verified is marked not recorded, never guessed. Convoy is not a safety rating: a long queue does not mean a drop contract is safe.",
+    meaningBody: "A signal is a statement of intent from an Agent ID holder, not a guarantee that they will mint and not a promise of any result. The minted count is read from the project contract itself; a project whose counter cannot be verified is marked no public reading, never guessed. Convoy is not a safety rating: a long queue does not mean a drop contract is safe.",
     footContract: "Signal contract:", footRegistry: "Agent ID registry:",
     footPrivacy: "Convoy does not record wallet addresses for analytics.",
     notDeployedFooter: "not deployed on mainnet yet",
@@ -281,10 +291,10 @@ const STRINGS = {
     connectedAs: "Connected:",
     zoneSignal: "Queue signals", zoneSignalNote: "Agent ID holders stating intent",
     zoneMinted: "Already minted", zoneMintedNote: "what actually happened, from the project contract",
-    notRecorded: "Not recorded",
-    notRecordedWhy: "This project contract offers no verifiable counter read, so Convoy does not guess the number.",
+    notRecorded: "No public reading",
+    notRecordedWhy: "This contract does not publish a minted count, so Convoy does not display one. This is not a zero.",
     quotaLeft: "Your remaining free quota",
-    quotaNotRecorded: "Per-address quota is not recorded in this project contract.",
+    quotaNotRecorded: "No public reading for per-address quota. This contract does not publish a remaining per-address quota, so Convoy does not display one.",
     quotaOf: "of the total quota",
     srcLabel: "Source:",
     srcDual: "two RPCs agree",
@@ -298,13 +308,19 @@ const STRINGS = {
     quotaSrc: "Source: {fns} · read {when}",
     burnRate: "Burn rate",
     burnPerMin: "mints per minute",
-    burnWarming: "The burn rate starts after the next read; one read is not enough to compute a rate.",
-    burnStill: "No new mints since this page opened, so the burn rate is zero for now.",
-    burnDone: "This project quota reads as fully used from its contract.",
+    burnLoading: "Cannot be calculated yet: the first counter reading has not finished.",
+    burnNoPublic: "Cannot be calculated: there is no public reading for the minted count.",
+    burnUnverified: "Cannot be calculated: two independent readings disagree, so the number is hidden.",
+    burnNoSample: "Cannot be calculated yet: no minted reading has been recorded.",
+    burnOneSample: "Cannot be calculated yet: only one reading is recorded, waiting for a second reading.",
+    burnShortWindow: "Cannot be calculated yet: the two readings are too close together, waiting for a minimum 15 second sample window.",
+    burnWarming: "Cannot be calculated yet: the samples are not sufficient.",
+    burnStill: "Burn rate 0 mints per minute in this sample window. A run-out estimate cannot be calculated because no new mint has been recorded.",
+    burnDone: "This project quota reads as fully used from its contract, so no run-out estimate needs to be calculated.",
     eta: "Estimated to run out",
     etaRange: "about {a} to {b}",
     etaSingle: "about {a}",
-    stOpen: "Open now", stUpcoming: "Not open yet", stClosed: "Closed", stUnknown: "Time not announced",
+    stOpen: "Open", stUpcoming: "Not open yet", stClosed: "Closed", stUnknown: "Time not announced",
     opensAt: "Opens", closesAt: "Closes",
     dropContract: "Drop contract",
     registrar: "Registered by",
@@ -375,9 +391,20 @@ function t(key) {
   return STRINGS[lang][key] || STRINGS.id[key] || key;
 }
 
+function updateThemeButton() {
+  const cur = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  const icon = $("theme-icon");
+  const label = $("theme-label");
+  const btn = $("theme-toggle");
+  if (icon) icon.textContent = cur === "dark" ? "☾" : "☀";
+  if (label) label.textContent = cur === "dark" ? t("themeDark") : t("themeLight");
+  if (btn) btn.setAttribute("aria-label", t("themeCurrent").replace("{mode}", cur === "dark" ? t("themeDark") : t("themeLight")));
+}
+
 function applyLang(next) {
   lang = next;
   document.documentElement.lang = next;
+  updateThemeButton();
   for (const el of document.querySelectorAll("[data-i18n]")) {
     el.textContent = t(el.getAttribute("data-i18n"));
   }
@@ -1068,6 +1095,22 @@ const FRESH_LIMIT_MS = 90000;
  * panel keeps saying the rate is still warming up. */
 const BURN_MIN_WINDOW_SEC = 15;
 
+/* Page-layer curation for the Stage 3 calibration drops. The mock
+ * contracts stay alive on testnet as calibration evidence; this list
+ * only controls how their board cards are labelled and whether the
+ * default board view hides them. It is not a contract power. */
+const CALIBRATION_CONTRACTS = new Set([
+  "0x3b55c0206bfaa200099f5ded31c714f538f19f92", // MockDropQuota Q1, drop 1
+  "0xf85840609888c82eb4a6540eefd19d8dd79fe050", // MockDropSupply S1, drop 2
+  "0x56bcb584034f0d15f32072434d3a9f3632786f52", // MockDropQuota Q2, drop 3
+  "0x2331c588d6c1396c79e66786feac16a834f405f4", // MockDropQuota Q3, drop 4
+  "0xf4ecb0d24e11218bF86deB2ceF2730696613159e".toLowerCase(), // MockDropSupply S2, calibration proof only
+]);
+
+function isCalibration(entry) {
+  return !!entry && !!entry.drop && CALIBRATION_CONTRACTS.has(entry.drop.dropContract.toLowerCase());
+}
+
 const board = {
   drops: [], // { id, drop, counter, samples: [{t, minted}], mySignal, quota }
   block: null,
@@ -1077,6 +1120,7 @@ const board = {
   failed: false,
   isHolder: null,
   filter: "all",
+  hideTestData: true,
 };
 
 let refreshInFlight = false;
@@ -1106,6 +1150,35 @@ function statusText(key) {
   return { open: t("stOpen"), upcoming: t("stUpcoming"), closed: t("stClosed"), unknown: t("stUnknown") }[key];
 }
 
+function visibleBoardDrops() {
+  return board.drops.filter((entry) => !board.hideTestData || !isCalibration(entry));
+}
+
+function sortedBoardDrops(entries) {
+  const rank = { upcoming: 0, open: 1, unknown: 2, closed: 3 };
+  return [...entries].sort((a, b) => {
+    const sa = windowStatus(a.drop);
+    const sb = windowStatus(b.drop);
+    if (rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
+    if (sa === "upcoming") return a.drop.opensAt - b.drop.opensAt;
+    if (sa === "open") {
+      const ca = a.drop.closesAt || Number.MAX_SAFE_INTEGER;
+      const cb = b.drop.closesAt || Number.MAX_SAFE_INTEGER;
+      if (ca !== cb) return ca - cb;
+      return a.drop.opensAt - b.drop.opensAt;
+    }
+    if (sa === "closed") return b.drop.closesAt - a.drop.closesAt;
+    return a.id - b.id;
+  });
+}
+
+function nextUpcomingId(entries) {
+  const upcoming = entries
+    .filter((entry) => windowStatus(entry.drop) === "upcoming")
+    .sort((a, b) => a.drop.opensAt - b.drop.opensAt);
+  return upcoming.length ? upcoming[0].id : null;
+}
+
 function pushSample(entry) {
   if (!entry.counter || entry.counter.status !== "ok") return;
   const nowSec = Math.floor(Date.now() / 1000);
@@ -1120,13 +1193,17 @@ function pushSample(entry) {
  * never a single invented instant. */
 function burnInfo(entry) {
   const c = entry.counter;
-  if (!c || c.status !== "ok") return { kind: "missing" };
+  if (!c) return { kind: "loading" };
+  if (c.status === "missing") return { kind: "nopublic" };
+  if (c.status === "unverified") return { kind: "unverified" };
+  if (c.status !== "ok") return { kind: "loading" };
   if (c.cap !== null && c.minted >= c.cap) return { kind: "done" };
   const s = entry.samples;
-  if (s.length < 2) return { kind: "warming" };
+  if (s.length === 0) return { kind: "nosample" };
+  if (s.length === 1) return { kind: "onesample" };
   const first = s[0];
   const last = s[s.length - 1];
-  if (last.t - first.t < BURN_MIN_WINDOW_SEC) return { kind: "warming" };
+  if (last.t - first.t < BURN_MIN_WINDOW_SEC) return { kind: "shortwindow" };
   const dtMin = (last.t - first.t) / 60;
   const dMint = Number(last.minted - first.minted);
   if (dtMin <= 0 || dMint <= 0) return { kind: "still" };
@@ -1309,7 +1386,7 @@ function zoneMinted(entry, p) {
   const c = entry.counter;
   if (!c || c.status === "missing") {
     z.appendChild(el("p", p + "-missing", t("notRecorded")));
-    z.appendChild(el("p", p + "-note", t("zoneMintedNote")));
+    z.appendChild(el("p", p + "-note", t("notRecordedWhy")));
     return z;
   }
   if (c.status === "unverified") {
@@ -1334,8 +1411,18 @@ function burnParas(entry, cls) {
   const out = [];
   const rateRow = el("p", cls);
   rateRow.appendChild(el("strong", null, t("burnRate") + ": "));
-  if (info.kind === "missing") {
-    rateRow.appendChild(document.createTextNode(t("notRecordedWhy")));
+  if (info.kind === "loading") {
+    rateRow.appendChild(document.createTextNode(t("burnLoading")));
+  } else if (info.kind === "nopublic") {
+    rateRow.appendChild(document.createTextNode(t("burnNoPublic")));
+  } else if (info.kind === "unverified") {
+    rateRow.appendChild(document.createTextNode(t("burnUnverified")));
+  } else if (info.kind === "nosample") {
+    rateRow.appendChild(document.createTextNode(t("burnNoSample")));
+  } else if (info.kind === "onesample") {
+    rateRow.appendChild(document.createTextNode(t("burnOneSample")));
+  } else if (info.kind === "shortwindow") {
+    rateRow.appendChild(document.createTextNode(t("burnShortWindow")));
   } else if (info.kind === "warming") {
     rateRow.appendChild(document.createTextNode(t("burnWarming")));
   } else if (info.kind === "still") {
@@ -1418,10 +1505,12 @@ function renderFeatured() {
     return; // keep the loading plate from the static HTML
   }
   slot.textContent = "";
-  const entry = board.drops.reduce((a, b) => (b.drop.signalCount > a.drop.signalCount ? b : a), board.drops[0]);
+  const featuredPool = visibleBoardDrops().length ? visibleBoardDrops() : board.drops;
+  const entry = featuredPool.reduce((a, b) => (b.drop.signalCount > a.drop.signalCount ? b : a), featuredPool[0]);
   const plate = el("article", "plate");
+  plate.dataset.dropId = String(entry.id);
   const st = windowStatus(entry.drop);
-  plate.appendChild(el("p", "plate-status", statusText(st)));
+  plate.appendChild(el("p", "plate-status", statusText(st) + (isCalibration(entry) ? " · " + t("testDataBadge") : "")));
   plate.appendChild(el("h3", "plate-label", entry.drop.label));
   const win = el("p", "plate-window");
   if (entry.drop.opensAt > 0) {
@@ -1447,12 +1536,16 @@ function renderFeatured() {
   caption.textContent = t("featuredCaption");
 }
 
-function dropCard(entry) {
+function dropCard(entry, nextId) {
   const card = el("article", "drop-card");
+  card.dataset.dropId = String(entry.id);
+  if (entry.id === nextId) card.classList.add("is-next");
   const top = el("div", "drop-top");
   top.appendChild(el("span", "drop-label", entry.drop.label));
+  if (isCalibration(entry)) top.appendChild(el("span", "test-badge", t("testDataBadge")));
   const st = windowStatus(entry.drop);
-  top.appendChild(el("span", "drop-status " + statusClass(st), statusText(st)));
+  const statusLabel = entry.id === nextId ? t("nextUp") + " · " + statusText(st) : statusText(st);
+  top.appendChild(el("span", "drop-status " + statusClass(st), statusLabel));
   card.appendChild(top);
 
   const addrRow = el("div", "drop-addr");
@@ -1496,7 +1589,10 @@ function dropCard(entry) {
   zones.appendChild(zoneSignal(entry.drop.signalCount, "dzone"));
   zones.appendChild(zoneMinted(entry, "dzone"));
   card.appendChild(zones);
-  for (const p of burnParas(entry, "drop-burn")) card.appendChild(p);
+  const burnPanel = el("section", "burn-panel");
+  burnPanel.setAttribute("aria-label", t("burnRate"));
+  for (const p of burnParas(entry, "drop-burn")) burnPanel.appendChild(p);
+  card.appendChild(burnPanel);
 
   const actions = el("div", "drop-actions");
   if (entry.mySignal === true) {
@@ -1544,8 +1640,9 @@ function dropCard(entry) {
 function renderChips() {
   const wrap = $("filter-chips");
   wrap.textContent = "";
-  const counts = { all: board.drops.length, open: 0, upcoming: 0, closed: 0 };
-  for (const e of board.drops) {
+  const base = visibleBoardDrops();
+  const counts = { all: base.length, open: 0, upcoming: 0, closed: 0 };
+  for (const e of base) {
     const st = windowStatus(e.drop);
     if (st === "open" || st === "unknown") counts.open++;
     else if (st === "upcoming") counts.upcoming++;
@@ -1568,12 +1665,13 @@ function renderChips() {
   }
   const line = $("count-line");
   const visible = filteredDrops().length;
-  line.textContent = t("showing").replace("{x}", String(visible)).replace("{y}", String(board.drops.length));
+  line.textContent = t("showing").replace("{x}", String(visible)).replace("{y}", String(base.length));
 }
 
 function filteredDrops() {
-  if (board.filter === "all") return board.drops;
-  return board.drops.filter((e) => {
+  const base = sortedBoardDrops(visibleBoardDrops());
+  if (board.filter === "all") return base;
+  return base.filter((e) => {
     const st = windowStatus(e.drop);
     if (board.filter === "open") return st === "open" || st === "unknown";
     return st === board.filter;
@@ -1590,6 +1688,8 @@ function stateBlock(titleKey, bodyKey) {
 function renderBoard() {
   const list = $("drop-list");
   const asof = $("board-asof");
+  const testToggle = document.querySelector(".testdata-toggle");
+  if (testToggle) testToggle.hidden = !CONFIG.convoyAddress;
   list.textContent = "";
   if (!CONFIG.convoyAddress) {
     renderChipsHidden();
@@ -1615,7 +1715,8 @@ function renderBoard() {
     if (visible.length === 0) {
       list.appendChild(stateBlock("filterNoneTitle", "filterNoneBody"));
     } else {
-      for (const entry of visible) list.appendChild(dropCard(entry));
+      const nextId = nextUpcomingId(visible);
+      for (const entry of visible) list.appendChild(dropCard(entry, nextId));
     }
   }
   if (board.block !== null && board.readAt) {
@@ -1646,8 +1747,10 @@ function renderMine() {
   }
   for (const entry of board.drops) {
     const row = el("div", "mine-row");
+    row.dataset.dropId = String(entry.id);
     const top = el("div", "row-top");
     top.appendChild(el("span", "drop-label", entry.drop.label));
+    if (isCalibration(entry)) top.appendChild(el("span", "test-badge", t("testDataBadge")));
     const on = entry.mySignal === true;
     top.appendChild(el("span", "sig-status " + (on ? "sig-on" : "sig-off"),
       on ? t("youSignaled") : t("notQueued")));
@@ -2009,6 +2112,11 @@ $("theme-toggle").addEventListener("click", () => {
   } catch (e) {
     /* storage unavailable: theme applies to this view only */
   }
+  updateThemeButton();
+});
+$("hide-testdata").addEventListener("change", (e) => {
+  board.hideTestData = !!e.target.checked;
+  renderBoard();
 });
 
 function updateFooter() {

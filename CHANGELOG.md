@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.6.0, Fix round after the first human test session (19 Nov 2026)
+
+- The first human test session (tester P-01, the product owner and
+  an Agent ID holder, on an Android phone; observation sheet in
+  `docs/USER-TEST-KIT.md` section 6.8) failed the five-second check,
+  partially passed A1, passed A2 with a finding, and failed A3. This
+  release is the page-layer fix round for those findings. No
+  contract changed and the Queue Plate element is untouched.
+- Theme toggle: the bare icon button is now an icon plus a text
+  label that names the current theme (moon plus Gelap in dark mode,
+  sun plus Terang in light mode), with a matching aria-label.
+- Board order and open status: the board is sorted with not yet open
+  drops first by nearest opening, then open, then unknown, then
+  closed. Every card carries a plain status badge (Belum buka,
+  Buka, Tutup) with its relevant times, and the nearest upcoming
+  card is marked Berikutnya with an outline. One new testnet example
+  drop with a future opening time was registered (drop 5, pointing
+  at the existing MockAgentID testnet contract) so the not yet open
+  state is really visible and tested.
+- No public reading wording: the old not recorded presentation is
+  replaced everywhere it appears, in both languages, with "Tidak
+  ada bacaan publik" plus the explanation that the contract does
+  not publish a minted count, Convoy does not display one, and it
+  is not a zero.
+- Burn panel: every card always shows its burn panel state
+  explicitly, either an ETA range with its sample window when the
+  data is sufficient, or one plain line stating the burn rate
+  cannot be calculated yet and why (no reading yet, only one
+  reading recorded waiting for a second, sample window under 15
+  seconds, no public reading, disagreeing readings, or quota
+  finished).
+- Calibration cleanup: the Stage 3 calibration drops carry a DATA
+  UJI KALIBRASI badge via a page-layer curation list keyed by
+  contract address, and the board has a "Sembunyikan data uji"
+  toggle, on by default, so the default board shows only the main
+  example drops. The mock contracts stay alive on testnet as
+  calibration evidence; mainnet starts from an empty board and the
+  contract deliberately has no delete function.
+
 ## 0.5.0, Stage 4 closed by exception plus the feedback feature (19 Nov 2026)
 
 - Stage 4 (real-user task testing) was closed by an explicit

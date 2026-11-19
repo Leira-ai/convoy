@@ -1,6 +1,6 @@
 # Paket Uji Tugas Tahap 4 Convoy: Protokol, Lembar Pengamatan, dan Analisis
 
-Tanggal: 19 Nov 2026. Status: DITUTUP DENGAN PENGECUALIAN pada 19 Nov 2026 atas keputusan Leira. Uji pengguna nyata TIDAK pernah dijalankan; tahap ini ditutup dengan uji mandiri terstruktur oleh pembangun plus fitur feedback, dan hasil serta daftar yang belum terbukti dicatat di Seksi 6 berkas ini. Pengecualian ini tidak membuat uji mandiri setara uji pengguna nyata.
+Tanggal: 19 Nov 2026. Status: DITUTUP DENGAN PENGECUALIAN pada 19 Nov 2026 atas keputusan Leira, lalu DIBUKA SEBAGIAN pada 19 Nov 2026 malam: sesi uji manusia pertama benar benar berjalan dengan Leira sendiri sebagai penguji P-01 (pemilik produk dan pemegang Agent ID), dimoderatori lewat chat satu tugas satu waktu tanpa bantuan di tengah tugas. Status tahap 4 kini: TERUJI MANUSIA SEBAGIAN OLEH PEMILIK. Lembar P-01 terisi di subseksi 6.8. Daftar yang belum terbukti di 6.5 TIDAK BERUBAH untuk penguji luar, karena P-01 adalah pemilik yang sudah mengenal produknya. Uji mandiri terstruktur oleh pembangun plus fitur feedback tetap tercatat di Seksi 6 dan tidak setara uji pengguna nyata.
 Objek uji: halaman testnet live https://convoy.utterhq.workers.dev/?network=testnet
 Metode: uji tugas mengikuti Nielsen Norman Group. Penguji mengerjakan tugas nyata sambil berpikir keras (think aloud), moderator mengamati tanpa membantu, dan yang diukur adalah perilaku, bukan pendapat. Sekitar 5 penguji per putaran menemukan sebagian besar masalah; dua putaran kecil dengan perbaikan di antaranya mengalahkan satu uji besar.
 Pasangan berkas: panduan penguji di `docs/PANDUAN-PENGUJI.md`, draf ajakan di `~/workspace/goals/pipeline-bounty-dan-hackathon-berbayar/files/draf-ajakan-uji-convoy.md`.
@@ -210,6 +210,29 @@ Atas perintah Leira di penutupan yang sama, halaman kini punya fitur feedback: s
 ### 6.7 Status Bagian B
 
 Bagian B (sinyal sungguhan oleh penguji yang sama sesudah mainnet live) TIDAK berubah oleh pengecualian ini: ia tetap rencana yang tertulis di kit, belum terjadwal, dan menjadi jalur pertama untuk menutup daftar 6.5 bila Leira membuka rekrutmen di kemudian hari. Selama Bagian B belum berjalan, setiap klaim kesiapan Convoy wajib membawa catatan bahwa gesekan Developer Mode belum terbukti pada manusia.
+
+### 6.8 Lembar pengamatan P-01, sesi manusia pertama (19 Nov 2026 malam)
+
+Kode penguji: P-01
+Peran: pemilik produk, pemegang Agent ID (leira.ai, lewat Agentic Wallet)
+Perangkat: HP Android
+Tanggal dan jam sesi: 19 Nov 2026 malam (WIB)
+Moderasi: lewat chat, satu tugas satu waktu, tanpa bantuan di tengah tugas. Waktu per tugas tidak diukur dengan pengatur waktu di sesi chat ini, jadi kolom waktu ditulis tidak diukur, bukan ditebak.
+
+Hasil pemeriksaan lima detik: GAGAL.
+- Kesan yang tertangkap bukan konsep radar antrean. Kutipan penguji apa adanya: "MENURUT GW SI ITU HALAMAN SEMUANYA,SOALNYA CUMA ADA 1 HALAMAN,GK ADA DASHBOARD, PROFIL,DAN LAIN LAIN,TERUS TAMPILANYA JUGA MASIH BANYAAAKK YANG HARUS DI POLES,SALAH SATU CONTOHNYA ITU TOMBOL NIGHT/DAY MODE, LOGI DI TOMBOL NYA GK JELAS,DAN HALAMANNYA JUGA GK RAPIH,MALAH BIKIN PUSING USER"
+- Temuan intinya: halaman terasa satu halaman yang tidak rapi dan bikin pusing, tampilan masih banyak yang harus dipoles, dan logika ikon tombol mode malam dan siang tidak jelas.
+
+| Tugas | Hasil | Waktu | Titik macet (lokasi dan perilaku) | Kutipan penguji apa adanya | Keparahan |
+|---|---|---|---|---|---|
+| A1 Temukan drop terdekat | LULUS SEBAGIAN | tidak diukur | Papan drop: semua drop terbaca sudah terbuka, jadi "paling dekat bukanya" membingungkan; jawaban mengarah ke drop dengan jam buka paling awal | "HAH? SEMUANYA UDAH TERBUKA,KALO MAKSUD LU YANG PALING AWAL BUKA,ITU YANG TitipEscrow Testnet" | 2 |
+| A2 Sinyal vs terminting | LULUS DENGAN TEMUAN | tidak diukur | Zona terminting di kartu drop: angka antre terbaca benar, tetapi status tanpa bacaan publik dibaca sebagai belum ada yang termint | "YANG ANTRE 1,BELOM ADA YANG TER MINT" | 3 |
+| A3 Laju bakar | GAGAL | tidak diukur | Panel laju bakar di kartu drop: datanya tidak ketemu oleh penguji di produk, dan pertanyaan tugasnya sendiri membuat pusing. Ini kegagalan produk, bukan kegagalan penguji | "HAH? TUGAS MACAM APA INI,PERTANYAAN LU GK GW JAWAB SOALNYA GK ADA DATA NYA DI PRODUK NYA,DAN GW MALAH PUSING DENGAN PERTANYAAN LU" | 3 |
+| A7 Developer Mode | DIBATALKAN, kesalahan premis kit | tidak diukur | Premis tugas salah dari sisi perancang kit: Developer Mode penguji sudah aktif sejak lama, dan Agentic Wallet dioperasikan lewat agent, bukan panggilan kontrak manual dari aplikasi. Dicatat sebagai kesalahan kit, BUKAN hasil uji dan BUKAN kegagalan penguji | "HAH??????????? LU STRESS APA GIMANA DAH? DEV MODE DAH GW AKTIFIN,DAN LU TAU KAN KALO AGENTIC WALLET ITU CUMA BISA DIPAKE OLEH AGENT?" | n/a (cacat kit) |
+
+Catatan tambahan sesi, pertanyaan penguji tentang data mock: penguji menanyakan kenapa data mock masih ada di produk, kapan dibersihkan, dan apakah orang lain akan ikut melihat data mock itu saat memakai produk. Jawaban yang diberikan dan kemudian diwujudkan di putaran perbaikan: mock hanya hidup di testnet, mainnet mulai dari papan kosong secara konstruksi karena kontrak tidak punya fungsi hapus (disengaja), dan lapisan halaman kini memberi lencana serta sakelar sembunyi untuk data uji kalibrasi supaya angka kalibrasi tidak tampil sebagai drop sungguhan.
+
+Tindak lanjut: kelima temuan sesi ini dikerjakan dalam satu putaran perbaikan halaman (versi halaman 0.6.0): ikon tema berlabel teks, urutan papan dan lencana status polos plus satu drop contoh berwaktu buka masa depan, redaksi tanpa bacaan publik yang baru, panel laju bakar yang selalu eksplisit, dan pembersihan tampilan data kalibrasi. Bukti dan regresi skrip A1, A2, A3 ada di `BUILD-REPORT.md` bagian Putaran Perbaikan Sesudah Sesi Manusia Pertama. Regresi skrip dinyatakan terus terang sebagai regresi skrip, bukan uji manusia ulang; kesan P-01 atas hasil perbaikan belum diuji ulang oleh manusia.
 
 ## 6. Panduan moderator
 
