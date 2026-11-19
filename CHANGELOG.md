@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.4.0, Stage 3: data layer calibration (19 Nov 2026)
+
+- Counter adapters for exactly three proven drop patterns
+  (per-address quota, ERC-721 supply, no public reading),
+  specified once and implemented identically by the calibration
+  harness and the page. Full evidence in
+  `docs/DATA-CALIBRATION.md`.
+- Two purpose-built mock drop contracts deployed on BSC testnet
+  with script-recorded ground truth; adapter readings matched
+  ground truth exactly from two independent RPCs at one pinned
+  block, including exhausted-quota and not-started edge cases.
+  The disagreement branch was proven with real chain data (a
+  counter read across a mint block boundary), and four mocks are
+  registered as live drops so the board shows calibrated data.
+- Number honesty rules on the page: every minted and quota
+  figure carries a source line (function, contract, block, read
+  time, corroboration), a 90-second freshness threshold with a
+  visible stale label, zero-tolerance dual-RPC reconciliation
+  that hides disputed numbers instead of picking a side, and a
+  burn rate computed only from verified samples with its sample
+  window stated on the label.
+- Fixed a real defect found by tapping the page's own RPC calls:
+  enrichment results were written to entry objects captured at
+  cycle start and were lost when the next refresh replaced them,
+  so later drops' readings never rendered on a slow transport.
+  Results now land on the live entry by id and persist across
+  cycles. Regression: full test suite green and the page signal
+  flow re-proven end to end on testnet with on-chain
+  reconciliation. The ConvoySignal contract is unchanged.
+
 ## 0.3.0, Stage 1 and Stage 2: scope freeze and security gate (19 Nov 2026)
 
 - Scope frozen in `docs/SCOPE-FREEZE.md`: what runs, what is

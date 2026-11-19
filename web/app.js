@@ -22,10 +22,26 @@
  *
  * Data honesty (blueprint): the signal count is holder intent, read
  * from ConvoySignal. The minted counter is read from each drop's own
- * contract through a small set of recognised view functions; when a
- * drop's contract offers none of them, the panel says TIDAK TERDATA
- * (not recorded) in words and never shows a guessed number. The two
- * numbers are rendered in separate zones and never mixed.
+ * contract through the Stage 3 adapter spec (docs/DATA-CALIBRATION.md):
+ * the kuota pattern (quotaOf + mintedBy, the Agent ID gated mint
+ * family), the suplai pattern (ERC-721 style totalSupply), or no
+ * recognised read at all. When no pattern matches, the panel says
+ * TIDAK TERDATA (not recorded) in words and never shows a guessed
+ * number. The two numbers are rendered in separate zones and never
+ * mixed.
+ *
+ * Data calibration rules (Stage 3, threat T-10): every counter and
+ * quota number carries its source (the function that answered and
+ * the contract read), the block it was read at, and its read time.
+ * Without a wallet, each counter is read from two independent RPC
+ * endpoints at one pinned block and shown only when both agree
+ * exactly (tolerance zero: these are discrete counts and the chain
+ * state at one block is unique); a disagreement renders as "not
+ * verified" with no number at all. With a wallet, reads come from
+ * the wallet's own provider and are labelled single-source. A number
+ * older than FRESH_LIMIT_MS renders with a stale tag. The burn rate
+ * comes from two time-separated samples, is shown as a range, and
+ * its label states the sample window.
  *
  * Network modes:
  * - mainnet (default): BNB Chain (56) with the real Agent ID registry.
@@ -138,6 +154,16 @@ const STRINGS = {
     quotaLeft: "Sisa jatah gratis kamu",
     quotaNotRecorded: "Jatah per alamat tidak terdata di kontrak proyek ini.",
     quotaOf: "dari total jatah",
+    srcLabel: "Sumber:",
+    srcDual: "dua RPC cocok",
+    srcConflict: "dua RPC berselisih",
+    srcSingle: "satu sumber",
+    srcWallet: "lewat wallet",
+    staleTag: "Basi",
+    unverified: "Belum terverifikasi",
+    unverifiedWhy: "Dua bacaan independen pada blok yang sama memberi angka berbeda, jadi angka ini disembunyikan sampai bacaannya cocok.",
+    burnWindow: "Jendela sampel: {n} bacaan selama {w}",
+    quotaSrc: "Sumber: {fns} · dibaca {when}",
     burnRate: "Laju bakar",
     burnPerMin: "mint per menit",
     burnWarming: "Laju bakar mulai terbaca sesudah bacaan berikutnya; satu bacaan belum cukup untuk menghitung laju.",
@@ -235,6 +261,16 @@ const STRINGS = {
     quotaLeft: "Your remaining free quota",
     quotaNotRecorded: "Per-address quota is not recorded in this project contract.",
     quotaOf: "of the total quota",
+    srcLabel: "Source:",
+    srcDual: "two RPCs agree",
+    srcConflict: "two RPCs disagree",
+    srcSingle: "single source",
+    srcWallet: "via wallet",
+    staleTag: "Stale",
+    unverified: "Not verified",
+    unverifiedWhy: "Two independent reads at the same block returned different numbers, so this number is hidden until the reads agree.",
+    burnWindow: "Sample window: {n} reads over {w}",
+    quotaSrc: "Source: {fns} · read {when}",
     burnRate: "Burn rate",
     burnPerMin: "mints per minute",
     burnWarming: "The burn rate starts after the next read; one read is not enough to compute a rate.",
@@ -707,23 +743,30 @@ function formatDuration(minutes) {
 /* Bounded concurrency, successes only, raw errors never rendered.    */
 /* ------------------------------------------------------------------ */
 
+/* One JSON-RPC call against one specific endpoint. Throws on
+ * transport failure and on a JSON-RPC error answer alike; callers
+ * that treat reverts as data use tryCallWith, which catches. */
+async function fetchRpcAt(url, method, params) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+  });
+  const body = await res.json();
+  if (body && body.error) {
+    const e = new Error(body.error.message || "rpc error");
+    e.data = body.error.data;
+    e.code = body.error.code;
+    throw e;
+  }
+  return body.result;
+}
+
 async function fetchRpc(method, params) {
   let lastErr = null;
   for (const url of CONFIG.readRpcs) {
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-      });
-      const body = await res.json();
-      if (body && body.error) {
-        const e = new Error(body.error.message || "rpc error");
-        e.data = body.error.data;
-        e.code = body.error.code;
-        throw e;
-      }
-      return body.result;
+      return await fetchRpcAt(url, method, params);
     } catch (e) {
       lastErr = e;
     }
@@ -762,6 +805,20 @@ async function tryCallUint(to, sig, types, values) {
   }
 }
 
+/* The same read against an explicit transport: callFn(to, data)
+ * resolves to the eth_call result hex or throws. Used by the Stage 3
+ * adapter probe so the exact same probe can run against two RPC
+ * endpoints at one pinned block, or against the wallet provider. */
+async function tryCallWith(callFn, to, sig, types, values) {
+  try {
+    const hex = await callFn(to, encodeCall(sig, types, values));
+    if (!hex || hex === "0x" || hex.length < 66) return null;
+    return decUintWord(wordAt(hex, 0));
+  } catch (e) {
+    return null;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Convoy reads: drops, counters, quota, my status.                   */
 /* ------------------------------------------------------------------ */
@@ -786,39 +843,177 @@ async function readIsHolder(addr) {
   return v !== null && v > 0n;
 }
 
-/* Recognised minted counters (blueprint): totalMinted first, then
- * totalSupply; the cap from maxSupply, MAX_SUPPLY, or cap. Anything
- * else stays not recorded. */
-async function readCounter(dropContract) {
-  let minted = await tryCallUint(dropContract, "totalMinted()", [], []);
-  if (minted === null) minted = await tryCallUint(dropContract, "totalSupply()", [], []);
-  if (minted === null) return { status: "missing" };
-  let cap = await tryCallUint(dropContract, "maxSupply()", [], []);
-  if (cap === null) cap = await tryCallUint(dropContract, "MAX_SUPPLY()", [], []);
-  if (cap === null) cap = await tryCallUint(dropContract, "cap()", [], []);
-  return { status: "ok", minted, cap };
+/* ------------------------------------------------------------------ */
+/* Stage 3 counter adapters (docs/DATA-CALIBRATION.md). The probe    */
+/* below is the canonical spec, mirrored by the calibration harness  */
+/* that proved it against mock contracts with known ground truth:    */
+/*                                                                   */
+/* 1. Kuota pattern: quotaOf(address) AND mintedBy(address) both     */
+/*    answer. Global minted from totalMinted(), else totalSupply();  */
+/*    cap from maxSupply(), else MAX_SUPPLY(), else cap().           */
+/* 2. Suplai pattern: totalSupply() answers and the kuota branch     */
+/*    did not. Cap from the same candidate list.                     */
+/* 3. None: neither branch answers; the number is not recorded.      */
+/*                                                                   */
+/* A probe where no candidate answers is the genuine "none" pattern, */
+/* not a transport failure: callers establish transport health       */
+/* separately (a block-number read per endpoint, a provider health   */
+/* check), so a silent contract can be told apart from a dead RPC.   */
+/* ------------------------------------------------------------------ */
+
+const CAP_SIGS = ["maxSupply()", "MAX_SUPPLY()", "cap()"];
+
+async function probeCounter(callFn, dropContract, probeAddr) {
+  const call = (sig, types, values) => tryCallWith(callFn, dropContract, sig, types, values);
+  const quota = await call("quotaOf(address)", ["address"], [probeAddr]);
+  const used = quota !== null ? await call("mintedBy(address)", ["address"], [probeAddr]) : null;
+  if (quota !== null && used !== null) {
+    let minted = await call("totalMinted()", [], []);
+    let mintedFn = "totalMinted()";
+    if (minted === null) {
+      minted = await call("totalSupply()", [], []);
+      mintedFn = "totalSupply()";
+    }
+    let cap = null;
+    let capFn = null;
+    for (const sig of CAP_SIGS) {
+      cap = await call(sig, [], []);
+      if (cap !== null) { capFn = sig; break; }
+    }
+    return { pattern: "kuota", minted, mintedFn: minted !== null ? mintedFn : null, cap, capFn };
+  }
+  const ts = await call("totalSupply()", [], []);
+  if (ts !== null) {
+    let cap = null;
+    let capFn = null;
+    for (const sig of CAP_SIGS) {
+      cap = await call(sig, [], []);
+      if (cap !== null) { capFn = sig; break; }
+    }
+    return { pattern: "suplai", minted: ts, mintedFn: "totalSupply()", cap, capFn };
+  }
+  return { pattern: "none", minted: null, mintedFn: null, cap: null, capFn: null };
 }
 
-/* Recognised per-address free quota (blueprint): a direct remaining
- * read, or total quota minus what this address already used. */
-async function readQuota(dropContract, addr) {
+function finishCounter(res, meta) {
+  const base = {
+    pattern: res.pattern,
+    mintedFn: res.mintedFn,
+    capFn: res.capFn,
+    block: meta.block,
+    readAt: Date.now(),
+    source: meta.source,
+    verified: meta.verified,
+  };
+  if (res.pattern === "none" || res.minted === null) {
+    return Object.assign(base, { status: "missing", minted: null, cap: null });
+  }
+  return Object.assign(base, { status: "ok", minted: res.minted, cap: res.cap });
+}
+
+function sameCounter(a, b) {
+  return a.pattern === b.pattern && a.minted === b.minted && a.cap === b.cap;
+}
+
+/* Read one drop contract's counter under the Stage 3 rules.
+ * Returns a counter object, or null when every transport failed, in
+ * which case the caller keeps the previous reading (which then ages
+ * into its stale label instead of being replaced by a guess). */
+async function readCounter(dropContract) {
+  const probeAddr = account || CONFIG.convoyAddress;
+  if (provider) {
+    const callFn = async (to, data) => provider.request({ method: "eth_call", params: [{ to, data }, "latest"] });
+    const res = await probeCounter(callFn, dropContract, probeAddr);
+    if (res.pattern === "none") {
+      // A silent contract and a dead provider look alike from here;
+      // one health read tells them apart.
+      try {
+        await provider.request({ method: "eth_blockNumber", params: [] });
+      } catch (e) {
+        return null;
+      }
+    }
+    let block = null;
+    try {
+      block = Number(BigInt(await provider.request({ method: "eth_blockNumber", params: [] })));
+    } catch (e) { /* the label simply omits the block */ }
+    return finishCounter(res, { source: "wallet", verified: false, block });
+  }
+  const urlA = CONFIG.readRpcs[0];
+  const urlB = CONFIG.readRpcs[1];
+  let blockA = null;
+  let blockB = null;
+  try { blockA = Number(BigInt(await fetchRpcAt(urlA, "eth_blockNumber", []))); } catch (e) { /* endpoint down */ }
+  try { blockB = Number(BigInt(await fetchRpcAt(urlB, "eth_blockNumber", []))); } catch (e) { /* endpoint down */ }
+  if (blockA === null && blockB === null) return null;
+  const pin = Math.min(blockA === null ? Infinity : blockA, blockB === null ? Infinity : blockB);
+  const pinHex = "0x" + pin.toString(16);
+  const mkCall = (url) => async (to, data) => fetchRpcAt(url, "eth_call", [{ to, data }, pinHex]);
+  let resA = null;
+  let resB = null;
+  if (blockA !== null) resA = await probeCounter(mkCall(urlA), dropContract, probeAddr);
+  if (blockB !== null) resB = await probeCounter(mkCall(urlB), dropContract, probeAddr);
+  if (resA && resB) {
+    if (sameCounter(resA, resB)) {
+      return finishCounter(resA, { source: "dual", verified: true, block: pin });
+    }
+    return {
+      status: "unverified", pattern: resA.pattern, mintedFn: resA.mintedFn, capFn: resA.capFn,
+      minted: null, cap: null, block: pin, readAt: Date.now(), source: "dual", verified: false,
+    };
+  }
+  const single = resA || resB;
+  if (!single) return null;
+  return finishCounter(single, { source: "single", verified: false, block: pin });
+}
+
+/* Per-address free quota, pattern-aware (Stage 3): on a kuota
+ * pattern contract the quota is quotaOf minus mintedBy (freeMinted
+ * as the usage fallback); elsewhere a direct remaining read is tried
+ * (freeRemaining, remainingFree, freeQuotaLeft). Anything else stays
+ * not recorded. The result carries its source functions and read
+ * time so the panel can label them like the counters. */
+async function readQuota(dropContract, addr, pattern) {
+  const readAt = Date.now();
+  const source = provider ? "wallet" : "single";
+  if (pattern === "kuota") {
+    const total = await tryCallUint(dropContract, "quotaOf(address)", ["address"], [addr]);
+    if (total !== null) {
+      let used = await tryCallUint(dropContract, "mintedBy(address)", ["address"], [addr]);
+      let usedFn = "mintedBy()";
+      if (used === null) {
+        used = await tryCallUint(dropContract, "freeMinted(address)", ["address"], [addr]);
+        usedFn = "freeMinted()";
+      }
+      if (used !== null) {
+        const remaining = total > used ? total - used : 0n;
+        return { status: "ok", remaining, total, fns: "quotaOf() − " + usedFn, readAt, source };
+      }
+    }
+  }
   const directSigs = ["freeRemaining(address)", "remainingFree(address)", "freeQuotaLeft(address)"];
   for (const sig of directSigs) {
     const v = await tryCallUint(dropContract, sig, ["address"], [addr]);
-    if (v !== null) return { status: "ok", remaining: v, total: null };
+    if (v !== null) {
+      return { status: "ok", remaining: v, total: null, fns: sig.split("(")[0] + "()", readAt, source };
+    }
   }
-  const total = await tryCallUint(dropContract, "quotaOf(address)", ["address"], [addr]);
-  if (total === null) return { status: "missing" };
-  let used = await tryCallUint(dropContract, "mintedBy(address)", ["address"], [addr]);
-  if (used === null) used = await tryCallUint(dropContract, "freeMinted(address)", ["address"], [addr]);
-  if (used === null) return { status: "missing" };
-  const remaining = total > used ? total - used : 0n;
-  return { status: "ok", remaining, total };
+  return { status: "missing", readAt, source };
 }
 
 /* ------------------------------------------------------------------ */
 /* Board state and refresh.                                           */
 /* ------------------------------------------------------------------ */
+
+/* Stage 3 freshness rule: the board refreshes every 30 seconds, so
+ * a counter reading older than 90 seconds has survived three missed
+ * refresh cycles; beyond that it is labelled stale rather than
+ * silently presented as current (docs/DATA-CALIBRATION.md). */
+const FRESH_LIMIT_MS = 90000;
+/* The burn rate needs two samples separated in time; under 15
+ * seconds apart the window is too short to mean anything and the
+ * panel keeps saying the rate is still warming up. */
+const BURN_MIN_WINDOW_SEC = 15;
 
 const board = {
   drops: [], // { id, drop, counter, samples: [{t, minted}], mySignal, quota }
@@ -878,6 +1073,7 @@ function burnInfo(entry) {
   if (s.length < 2) return { kind: "warming" };
   const first = s[0];
   const last = s[s.length - 1];
+  if (last.t - first.t < BURN_MIN_WINDOW_SEC) return { kind: "warming" };
   const dtMin = (last.t - first.t) / 60;
   const dMint = Number(last.minted - first.minted);
   if (dtMin <= 0 || dMint <= 0) return { kind: "still" };
@@ -891,7 +1087,7 @@ function burnInfo(entry) {
   }
   const rateMin = Math.min(rateAll, rateShort);
   const rateMax = Math.max(rateAll, rateShort);
-  const out = { kind: "live", rateMin, rateMax };
+  const out = { kind: "live", rateMin, rateMax, sampleCount: s.length, windowSec: last.t - first.t };
   if (c.cap !== null) {
     const remaining = Number(c.cap - c.minted);
     out.etaMin = remaining / rateMax;
@@ -922,8 +1118,11 @@ async function refreshBoard() {
         drop,
         counter: old ? old.counter : null,
         samples: old ? old.samples : [],
-        mySignal: null,
-        quota: null,
+        // Personal reads carry over like the counter does: on a slow
+        // transport a finished read must persist (and age under its
+        // stale label) instead of vanishing when the board rebuilds.
+        mySignal: old ? old.mySignal : null,
+        quota: old ? old.quota : null,
       };
     });
     board.drops = entries;
@@ -948,11 +1147,28 @@ async function refreshBoard() {
   }
 }
 
+/* Enrichment is fire-and-forget and can outlive the refresh cycle
+ * that started it: the next cycle replaces board.drops with fresh
+ * entry objects. Results must therefore be written to the LIVE
+ * entry with the same id, resolved at write time; writing to the
+ * captured object would land on a detached entry that no render
+ * ever reads, and on a slow transport the later drops' reads would
+ * never become visible at all (found in Stage 3 QA: the counter and
+ * quota reads answered correctly on-chain while the panel kept
+ * showing the previous cycle's empty state). */
+function liveEntry(entry) {
+  return board.drops.find((d) => d.id === entry.id) || entry;
+}
+
 async function refreshEnrichment(entries) {
   await mapLimit(entries, 3, async (entry) => {
     const counter = await readCounter(entry.drop.dropContract);
-    entry.counter = counter;
-    pushSample(entry);
+    const live = liveEntry(entry);
+    // null means every transport failed: keep the previous reading
+    // so it can age into its stale label instead of vanishing or
+    // being replaced by a guess.
+    if (counter !== null) live.counter = counter;
+    pushSample(live);
     renderFeatured();
     renderBoard();
   });
@@ -964,8 +1180,9 @@ async function refreshEnrichment(entries) {
   }
   board.isHolder = await readIsHolder(account);
   await mapLimit(entries, 3, async (entry) => {
-    entry.mySignal = await readHasSignaled(entry.id, account).catch(() => null);
-    entry.quota = await readQuota(entry.drop.dropContract, account);
+    const live = liveEntry(entry);
+    live.mySignal = await readHasSignaled(entry.id, account).catch(() => null);
+    live.quota = await readQuota(entry.drop.dropContract, account, live.counter ? live.counter.pattern : null);
     renderBoard();
     renderMine();
   });
@@ -988,6 +1205,40 @@ function monoAddr(addr) {
   return s;
 }
 
+function formatTimeOnly(ms) {
+  return new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-GB", {
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).format(new Date(ms));
+}
+
+function isStale(readAt) {
+  return !!readAt && Date.now() - readAt > FRESH_LIMIT_MS;
+}
+
+function sourceTag(c) {
+  if (c.status === "unverified") return t("srcConflict");
+  if (c.source === "dual") return t("srcDual");
+  if (c.source === "wallet") return t("srcWallet");
+  return t("srcSingle");
+}
+
+/* The Stage 3 source line under a counter number: which function
+ * answered, on which contract, at which block, read when, and how
+ * the read was corroborated; prefixed with the stale tag when the
+ * reading is older than the freshness limit. */
+function counterSrcLine(entry, c, p) {
+  const parts = [t("srcLabel")];
+  if (c.mintedFn) parts.push(c.mintedFn);
+  parts.push(truncateAddress(entry.drop.dropContract));
+  if (c.block !== null && c.block !== undefined) {
+    parts.push((lang === "id" ? "blok " : "block ") + Number(c.block).toLocaleString("id-ID"));
+  }
+  if (c.readAt) parts.push((lang === "id" ? "dibaca " : "read ") + formatTimeOnly(c.readAt));
+  parts.push(sourceTag(c));
+  const line = (isStale(c.readAt) ? t("staleTag") + " · " : "") + parts.join(" · ");
+  return el("p", p + "-note", line);
+}
+
 /* Zone builders share one shape in two skins: the plate uses .zone
  * classes, the drop cards use .dzone classes. Signal (intent) and
  * minted (fact) are always separate zones. */
@@ -1003,14 +1254,23 @@ function zoneMinted(entry, p) {
   const z = el("div", p + " " + p + "-minted");
   z.appendChild(el("p", p + "-key", t("zoneMinted")));
   const c = entry.counter;
-  if (!c || c.status !== "ok") {
+  if (!c || c.status === "missing") {
     z.appendChild(el("p", p + "-missing", t("notRecorded")));
     z.appendChild(el("p", p + "-note", t("zoneMintedNote")));
+    return z;
+  }
+  if (c.status === "unverified") {
+    // Two independent reads at one pinned block disagreed: the
+    // number is hidden, never resolved by picking a side.
+    z.appendChild(el("p", p + "-missing", t("unverified")));
+    z.appendChild(el("p", p + "-note", t("unverifiedWhy")));
+    z.appendChild(counterSrcLine(entry, c, p));
     return z;
   }
   const big = c.cap !== null ? String(c.minted) + " / " + String(c.cap) : String(c.minted);
   z.appendChild(el("p", p + "-big", big));
   z.appendChild(el("p", p + "-note", t("zoneMintedNote")));
+  z.appendChild(counterSrcLine(entry, c, p));
   return z;
 }
 
@@ -1043,6 +1303,15 @@ function burnParas(entry, cls) {
       t("etaRange").replace("{a}", formatDuration(info.etaMin)).replace("{b}", formatDuration(info.etaMax))
     ));
     out.push(etaRow);
+  }
+  if (info.kind === "live") {
+    const winRow = el("p", cls);
+    winRow.appendChild(document.createTextNode(
+      t("burnWindow")
+        .replace("{n}", String(info.sampleCount))
+        .replace("{w}", formatDuration(info.windowSec / 60))
+    ));
+    out.push(winRow);
   }
   return out;
 }
@@ -1331,6 +1600,14 @@ function renderMine() {
       meta.textContent = t("quotaNotRecorded");
     }
     row.appendChild(meta);
+    if (q && q.status === "ok" && q.fns) {
+      const src = el("p", "meta");
+      src.textContent =
+        (isStale(q.readAt) ? t("staleTag") + " · " : "") +
+        t("quotaSrc").replace("{fns}", q.fns).replace("{when}", formatTimeOnly(q.readAt)) +
+        " · " + (q.source === "wallet" ? t("srcWallet") : t("srcSingle"));
+      row.appendChild(src);
+    }
     if (on) {
       const btn = el("button", "btn btn-ghost btn-small", t("withdrawBtn"));
       btn.type = "button";
