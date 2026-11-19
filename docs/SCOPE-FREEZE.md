@@ -14,7 +14,8 @@ Tanggal bekukan: 19 Nov 2026. Status: AKTIF. Berkas ini adalah gerbang perubahan
 | Mode dua jaringan halaman: mainnet fail-closed sampai kontrak mainnet ada, testnet penuh lewat parameter | Live | Mencegah halaman menjanjikan jaringan yang belum live |
 | Gerbang keamanan Tahap 2: analisis statis, peta OWASP SCSVS, fuzz dan tes invarian | Dikerjakan pada tahap ini | Syarat ahli sebelum mainnet; sasaran fuzz adalah daftar invarian di `docs/THREAT-MODEL.md` |
 | Kalibrasi lapisan data Tahap 3: adaptor counter untuk dua atau tiga pola ABI terbanyak, label sumber dan kesegaran, rekonsiliasi dua RPC | Belum mulai, terjadwal sesudah tahap ini | Lapisan data adalah produknya; akurasi angka menentukan kepercayaan |
-| Uji tugas pengguna nyata Tahap 4 di testnet | Belum mulai, terjadwal | Satu satunya tahap yang tidak bisa digantikan penilaian pembangun, menurut sumber produk di memo |
+| Uji tugas pengguna nyata Tahap 4 di testnet | DITUTUP DENGAN PENGECUALIAN 19 Nov 2026: diganti uji mandiri terstruktur oleh Muse plus fitur feedback, atas keputusan Leira (lihat Riwayat perubahan). Uji pengguna nyata TIDAK dianggap sudah terjadi; Bagian B tetap menunggu mainnet dan penguji nyata | Satu satunya tahap yang tidak bisa digantikan penilaian pembangun, menurut sumber produk di memo; pengecualian ini dicatat sebagai utang bukti, bukan sebagai kesetaraan |
+| Fitur feedback di halaman: tombol masukan selalu terlihat, dialog formulir pendek berkategori, konteks otomatis yang dinyatakan terbuka, pengiriman sebagai draf issue publik di repo GitHub plus tombol salin teks cadangan | Ditambahkan 19 Nov 2026 atas perintah Leira, dibangun pada penutupan Tahap 4 | Kanal masukan pengguna nyata yang tidak bisa diuji sekarang; menggantikan sebagian fungsi penemuan masalah Tahap 4 sesudah produk dipakai orang, tanpa backend dan tanpa mengumpulkan data pribadi |
 | Deploy mainnet ConvoySignal ke registry Agent ID asli, verifikasi sumber, pemantauan event, runbook insiden | Belum mulai, hanya sesudah konfirmasi eksplisit Leira dan gerbang tahap 2, 3, 4 lulus | Syarat kelayakan hackathon: produk live di mainnet dan jam interaksi hanya berjalan di sana |
 | Berkas skill.md untuk agen dan umpan terbaca mesin (agent.md di repo) | agent.md ikut repo publik tahap ini; skill.md menyusul sebelum mainnet | Kanal rekrut ekosistem agen; agen mengantrekan pemiliknya dengan konfirmasi manusia |
 | Artefak submisi Tahap 8: video satu alur, README perjalanan pengguna, angka dibekukan dari on-chain | Belum mulai, dijadwalkan pekan terakhir dengan buffer | Artefak adalah yang benar benar dilihat juri; angka klaim wajib bisa diverifikasi juri sendiri |
@@ -43,3 +44,10 @@ Tanggal bekukan: 19 Nov 2026. Status: AKTIF. Berkas ini adalah gerbang perubahan
 ## Aturan perubahan
 
 Perubahan berkas ini wajib mencatat: tanggal, butir yang berubah, alasan, dan siapa yang menyetujui (untuk perubahan cakupan produk, persetujuan Leira). Perubahan yang lahir dari temuan keamanan dicatat juga di `docs/SECURITY-GATE.md`.
+
+## Riwayat perubahan
+
+| Tanggal | Butir yang berubah | Alasan | Disetujui oleh |
+|---|---|---|---|
+| 19 Nov 2026 | Fitur feedback di halaman ditambahkan ke daftar Berjalan | Perintah langsung Leira saat menutup Tahap 4: pengguna beneran harus punya jalur memberi masukan begitu mereka memakai produk, karena uji pengguna nyata diganti uji mandiri | Leira |
+| 19 Nov 2026 | Baris uji tugas Tahap 4 ditandai DITUTUP DENGAN PENGECUALIAN | Keputusan Leira: merekrut 3 sampai 5 pemegang nyata terlalu susah baginya saat ini, jadi tahap ditutup dengan uji mandiri terstruktur oleh Muse plus fitur feedback. Pengecualian ini tidak membuat uji mandiri setara uji pengguna nyata; risikonya (terutama gesekan Developer Mode yang belum terbukti pada manusia) tetap tercatat terbuka di `docs/USER-TEST-KIT.md` | Leira |
