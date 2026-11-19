@@ -101,13 +101,13 @@ const CONFIG = Object.assign({}, NETWORKS[NETWORK_MODE], {
 
 // Page release version, kept in step with CHANGELOG.md. It rides in
 // the feedback context so a report names the exact page it came from.
-const PAGE_VERSION = "0.6.0";
+const PAGE_VERSION = "0.7.0";
 
 const STRINGS = {
   id: {
     connect: "Hubungkan Wallet", disconnect: "Putuskan", switchChain: "Pindah ke BNB Chain",
     headline: "Antrean drop, dihitung dari orang nyata.",
-    lede: "Convoy menghitung siapa yang benar-benar berniat ikut drop bergate Agent ID. Sinyal hanya bisa diberikan pemegang Agent ID, satu nama satu sinyal, jadi angka antreannya tidak bisa digelembungkan wallet duplikat.",
+    lede: "Convoy menghitung siapa yang benar-benar berniat ikut drop bergate Agent ID. Sinyal hanya bisa diberikan pemegang Agent ID, satu nama satu sinyal, jadi angka antreannya hitungan orang nyata yang tidak bisa digelembungkan wallet duplikat.",
     deployNote: "Status: kontrak ConvoySignal belum dideploy di BNB Chain mainnet. Halaman ini menampilkan penjelasan produk; belum ada sinyal yang bisa diberikan di mainnet dan tidak ada angka yang ditampilkan sebagai data.",
     testnetNote: "Testnet: halaman ini memakai deployment uji di BSC Testnet (chain 97) dengan registry Agent ID tiruan. Angka antrean dan sinyal di mode ini nyata di testnet, dan tombol sinyal mengirim transaksi testnet beneran dari wallet kamu.",
     ctaBoard: "Lihat radar drop", ctaMine: "Antrean saya",
@@ -239,11 +239,29 @@ const STRINGS = {
     fbOpened: "Draf issue dibuka di tab baru. Periksa isinya di GitHub, lalu tekan tombol kirim di sana untuk menerbitkannya.",
     fbIssueCat: "Kategori", fbIssueTime: "Waktu", fbIssuePrefix: "Masukan",
     fbNetTestnet: "BSC Testnet (97)", fbNetMainnet: "BNB Chain mainnet (56)",
+    navRadar: "Radar", navQueue: "Antrean", navHow: "Cara kerja", navFeedback: "Masukan",
+    howTitle: "Cara kerja",
+    chipWatched: "Dipantau",
+    watchBtn: "Pantau", watchedBtn: "Dipantau",
+    watchNote: "Kamu memantau drop ini. Pantauan tersimpan di perangkat ini saja, bukan pemberitahuan.",
+    copyLink: "Salin tautan", linkCopied: "Tautan drop disalin.",
+    detailBtn: "Rincian", detailHide: "Tutup rincian",
+    detailContract: "Alamat kontrak drop", detailConvoy: "Kontrak Convoy tujuan sinyal",
+    detailWindow: "Jendela drop", detailSamples: "Bacaan terminting sesi ini",
+    detailExplorer: "Lihat di penjelajah blok",
+    sparkCap: "Riwayat terminting selama halaman ini terbuka",
+    sparkAria: "Riwayat terminting: dari {a} menjadi {b} selama halaman ini terbuka",
+    sparkScale: "Garis digambar dari bacaan sesi ini saja. Skalanya menyesuaikan nilai terkecil dan terbesar pada sesi ini, jadi bacalah arahnya, bukan kemiringannya.",
+    boardLimitNote: "Menampilkan {n} drop terbaru dari {total} drop terdaftar.",
+    testHiddenNote: "{n} data uji kalibrasi disembunyikan oleh sakelar di atas.",
+    cdOpens: "Buka dalam {t}", cdCloses: "Tutup dalam {t}",
+    notOpenWhy: "Drop ini belum buka. Kamu tetap bisa antre dari sekarang: sinyalmu tercatat sebagai niat sebelum jendelanya terbuka.",
+    rowContract: "Kontrak tujuan",
   },
   en: {
     connect: "Connect Wallet", disconnect: "Disconnect", switchChain: "Switch to BNB Chain",
     headline: "Drop queues, counted in real people.",
-    lede: "Convoy counts who actually intends to join Agent ID gated drops. Only Agent ID holders can signal, one name one signal, so the queue number cannot be inflated by duplicate wallets.",
+    lede: "Convoy counts who actually intends to join Agent ID gated drops. Only Agent ID holders can signal, one name one signal, so the queue number is a count of real people that cannot be inflated by duplicate wallets.",
     deployNote: "Status: the ConvoySignal contract is not deployed on BNB Chain mainnet yet. This page explains the product; no signal can be given on mainnet and no number is shown as data.",
     testnetNote: "Testnet: this page uses the Convoy test deployment on BSC Testnet (chain 97) with a mock Agent ID registry. Queue numbers and signals in this mode are real on testnet, and the signal buttons send real testnet transactions from your wallet.",
     ctaBoard: "See the drop radar", ctaMine: "My queue",
@@ -375,6 +393,24 @@ const STRINGS = {
     fbOpened: "The issue draft opened in a new tab. Check its content on GitHub, then press the submit button there to publish it.",
     fbIssueCat: "Category", fbIssueTime: "Time", fbIssuePrefix: "Feedback",
     fbNetTestnet: "BSC Testnet (97)", fbNetMainnet: "BNB Chain mainnet (56)",
+    navRadar: "Radar", navQueue: "Queue", navHow: "How it works", navFeedback: "Feedback",
+    howTitle: "How it works",
+    chipWatched: "Watched",
+    watchBtn: "Watch", watchedBtn: "Watched",
+    watchNote: "You are watching this drop. The watchlist is stored on this device only; it is not a notification.",
+    copyLink: "Copy link", linkCopied: "Drop link copied.",
+    detailBtn: "Details", detailHide: "Hide details",
+    detailContract: "Drop contract address", detailConvoy: "Convoy contract, the signal target",
+    detailWindow: "Drop window", detailSamples: "Minted readings this session",
+    detailExplorer: "View in block explorer",
+    sparkCap: "Minted history while this page is open",
+    sparkAria: "Minted history: from {a} to {b} while this page is open",
+    sparkScale: "The line is drawn from this session's readings only. Its scale fits the smallest and largest values of this session, so read its direction, not its steepness.",
+    boardLimitNote: "Showing the {n} most recent drops of {total} registered drops.",
+    testHiddenNote: "{n} calibration test drops are hidden by the switch above.",
+    cdOpens: "Opens in {t}", cdCloses: "Closes in {t}",
+    notOpenWhy: "This drop has not opened yet. You can still queue from now: your signal is recorded as intent before its window opens.",
+    rowContract: "Target contract",
   },
 };
 
@@ -1111,8 +1147,14 @@ function isCalibration(entry) {
   return !!entry && !!entry.drop && CALIBRATION_CONTRACTS.has(entry.drop.dropContract.toLowerCase());
 }
 
+/* Design v2 read bound (docs/FITUR-V2.md F-06, docs/KEAMANAN-V2.md
+ * K-01): drop registration is open to anyone, so the board reads at
+ * most this many most recent drops; the count line states the bound
+ * honestly whenever it bites. */
+const BOARD_READ_LIMIT = 200;
+
 const board = {
-  drops: [], // { id, drop, counter, samples: [{t, minted}], mySignal, quota }
+  drops: [], // { id, drop, counter, samples: [{t, minted}], mySignal, quota, sig }
   block: null,
   readAt: null,
   stale: false,
@@ -1121,7 +1163,43 @@ const board = {
   isHolder: null,
   filter: "all",
   hideTestData: true,
+  totalDrops: null,
 };
+
+/* Local watchlist (docs/FITUR-V2.md F-04): drop ids only, stored on
+ * this device, validated back to non-negative integers on read. It
+ * is a viewing aid, never a notification, and the card says so. */
+const WATCH_KEY = "convoy-watch";
+function loadWatch() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(WATCH_KEY) || "[]");
+    return new Set(Array.isArray(raw) ? raw.filter((x) => Number.isInteger(x) && x >= 0) : []);
+  } catch (e) {
+    return new Set();
+  }
+}
+const watchSet = loadWatch();
+function saveWatch() {
+  try {
+    localStorage.setItem(WATCH_KEY, JSON.stringify([...watchSet]));
+  } catch (e) {
+    /* storage unavailable: the watchlist lives for this view only */
+  }
+}
+function toggleWatch(id) {
+  if (watchSet.has(id)) watchSet.delete(id);
+  else watchSet.add(id);
+  saveWatch();
+  renderBoard();
+}
+
+/* Expanded per-drop detail sections survive board re-renders. */
+const openDetails = new Set();
+/* The ?drop= deep link is honoured once per page load. */
+let deepLinkDone = false;
+/* Last rendered signal and minted values per drop, so a zone can
+ * pulse once when its number actually changes (docs/DESAIN-V2.md). */
+const prevNums = new Map();
 
 let refreshInFlight = false;
 
@@ -1238,10 +1316,13 @@ async function refreshBoard() {
   refreshInFlight = true;
   try {
     const count = await readDropCount();
-    const ids = Array.from({ length: count }, (_, i) => i);
+    board.totalDrops = count;
+    const startId = Math.max(0, count - BOARD_READ_LIMIT);
+    const ids = Array.from({ length: count - startId }, (_, i) => startId + i);
     const drops = await mapLimit(ids, 4, (id) => readDrop(id));
     const previous = new Map(board.drops.map((d) => [d.id, d]));
-    const entries = drops.map((drop, id) => {
+    const entries = drops.map((drop, i) => {
+      const id = ids[i];
       const old = previous.get(id);
       return {
         id,
@@ -1253,6 +1334,7 @@ async function refreshBoard() {
         // stale label) instead of vanishing when the board rebuilds.
         mySignal: old ? old.mySignal : null,
         quota: old ? old.quota : null,
+        sig: old ? old.sig : null,
       };
     });
     board.drops = entries;
@@ -1261,12 +1343,29 @@ async function refreshBoard() {
     board.stale = false;
     board.failed = false;
     board.loaded = true;
+    // Signal provenance for the source line under every queue number:
+    // the base read is labelled by its transport, then the dual-RPC
+    // pass below upgrades or disputes it (docs/KEAMANAN-V2.md K-03).
+    for (const entry of entries) {
+      if (!entry.sig) {
+        entry.sig = { block: board.block, readAt: Date.now(), source: provider ? "wallet" : "single", verified: false, conflict: false };
+      } else {
+        entry.sig.block = board.block;
+        entry.sig.readAt = Date.now();
+        if (provider) {
+          entry.sig.source = "wallet";
+          entry.sig.verified = false;
+          entry.sig.conflict = false;
+        }
+      }
+    }
     renderFeatured();
     renderBoard();
     renderMine();
     // Counters, holder status and personal reads follow in the
     // background so the board paints its contract facts first.
     refreshEnrichment(entries);
+    verifyBoardDual(entries);
   } catch (e) {
     if (board.loaded) board.stale = true;
     board.failed = !board.loaded;
@@ -1316,6 +1415,62 @@ async function refreshEnrichment(entries) {
     renderBoard();
     renderMine();
   });
+}
+
+/* Dual-RPC verification of the board reads themselves (design v2,
+ * docs/KEAMANAN-V2.md finding K-03, docs/FITUR-V2.md F-05). The
+ * minted counters have had this protection since Stage 3, but the
+ * product's headline number, the signal count, travelled on a single
+ * first-success RPC. Without a wallet, every drop record is now read
+ * again from both configured endpoints at one pinned block and
+ * compared field by field: agreement upgrades the source line to
+ * "two RPCs agree", disagreement hides the signal number behind the
+ * not-verified state, and a single surviving endpoint stays labelled
+ * single source. With a wallet connected the reads already travel
+ * the user's own provider and are labelled via wallet. */
+async function verifyBoardDual(entries) {
+  if (provider || !CONFIG.convoyAddress) return;
+  const urlA = CONFIG.readRpcs[0];
+  const urlB = CONFIG.readRpcs[1];
+  if (!urlA || !urlB || urlA === urlB) return;
+  let blockA = null;
+  let blockB = null;
+  try { blockA = Number(BigInt(await fetchRpcAt(urlA, "eth_blockNumber", []))); } catch (e) { /* endpoint down */ }
+  try { blockB = Number(BigInt(await fetchRpcAt(urlB, "eth_blockNumber", []))); } catch (e) { /* endpoint down */ }
+  if (blockA === null && blockB === null) return;
+  const pin = Math.min(blockA === null ? Infinity : blockA, blockB === null ? Infinity : blockB);
+  const pinHex = "0x" + pin.toString(16);
+  const readAt = Date.now();
+  const getDropAt = async (url, id) => {
+    const hex = await fetchRpcAt(url, "eth_call", [
+      { to: CONFIG.convoyAddress, data: encodeCall("getDrop(uint256)", ["uint256"], [BigInt(id)]) },
+      pinHex,
+    ]);
+    return decodeDrop(hex);
+  };
+  await mapLimit(entries, 3, async (entry) => {
+    const live = liveEntry(entry);
+    let dA = null;
+    let dB = null;
+    if (blockA !== null) dA = await getDropAt(urlA, entry.id).catch(() => null);
+    if (blockB !== null) dB = await getDropAt(urlB, entry.id).catch(() => null);
+    if (dA && dB) {
+      const same =
+        dA.dropContract === dB.dropContract &&
+        dA.opensAt === dB.opensAt &&
+        dA.closesAt === dB.closesAt &&
+        dA.label === dB.label &&
+        dA.registrar === dB.registrar &&
+        dA.signalCount === dB.signalCount;
+      live.sig = { block: pin, readAt, source: "dual", verified: same, conflict: !same };
+      if (same) live.drop = dA;
+    } else if (dA || dB) {
+      live.sig = { block: pin, readAt, source: "single", verified: false, conflict: false };
+      live.drop = dA || dB;
+    }
+  });
+  renderFeatured();
+  renderBoard();
 }
 
 /* ------------------------------------------------------------------ */
@@ -1369,14 +1524,127 @@ function counterSrcLine(entry, c, p) {
   return el("p", p + "-note", line);
 }
 
-/* Zone builders share one shape in two skins: the plate uses .zone
+/* The source line under a signal number, mirroring counterSrcLine:
+ * the function that answered, the Convoy contract read, the block,
+ * the read time, and how the read was corroborated (design v2,
+ * K-03). Null while no provenance exists yet. */
+function sigSrcLine(entry, p) {
+  const sig = entry.sig;
+  if (!sig) return null;
+  const shim = { status: sig.conflict ? "unverified" : "ok", source: sig.source };
+  const parts = [t("srcLabel"), "getDrop()", truncateAddress(CONFIG.convoyAddress)];
+  if (sig.block !== null && sig.block !== undefined) {
+    parts.push((lang === "id" ? "blok " : "block ") + Number(sig.block).toLocaleString("id-ID"));
+  }
+  if (sig.readAt) parts.push((lang === "id" ? "dibaca " : "read ") + formatTimeOnly(sig.readAt));
+  parts.push(sourceTag(shim));
+  const line = (isStale(sig.readAt) ? t("staleTag") + " · " : "") + parts.join(" · ");
+  return el("p", p + "-note", line);
+}
+
+/* Tally marks, the Strip Antrean signature in miniature: one mark
+ * per real person queueing, grouped in fives with a diagonal fifth,
+ * exactly like a field watch sheet. Marks beyond prevCount enter
+ * with the tick-in transition; the count itself is never animated. */
+function tickEl(entry, idx, prevCount) {
+  const d = el("span", "tick");
+  if (idx === 0 && entry.mySignal === true) d.classList.add("is-me");
+  if (idx >= prevCount) d.classList.add("tick-in");
+  return d;
+}
+
+function tallyTicks(entry, max, prevCount) {
+  const count = Number(entry.drop.signalCount);
+  const wrap = el("div", "ticks");
+  wrap.setAttribute("role", "img");
+  wrap.setAttribute("aria-label", count + " " + t("queuePeople"));
+  const shown = Math.min(count, max);
+  let i = 0;
+  while (i + 5 <= shown) {
+    const g = el("span", "tick-group");
+    for (let k = 0; k < 4; k++) g.appendChild(tickEl(entry, i + k, prevCount));
+    const diag = el("span", "tick-diag");
+    if (i + 4 >= prevCount && prevCount < count) diag.classList.add("tick-in");
+    g.appendChild(diag);
+    wrap.appendChild(g);
+    i += 5;
+  }
+  while (i < shown) {
+    wrap.appendChild(tickEl(entry, i, prevCount));
+    i++;
+  }
+  if (count > max) wrap.appendChild(el("span", "ticks-more", "+" + (count - max)));
+  return wrap;
+}
+
+/* Session minted history as a word-sized sparkline (design v2,
+ * F-01): no axes, no legend, endpoints anchored, the takeaway as
+ * text. Shown only from at least five verified samples, and the
+ * caption states the session scope, because the page holds no
+ * cross-session history and must not pretend to. */
+function sparkline(entry, w, h) {
+  const s = entry.samples;
+  if (!s || s.length < 5 || !entry.counter || entry.counter.status !== "ok") return null;
+  const vals = s.map((x) => Number(x.minted));
+  const min = Math.min.apply(null, vals);
+  const max = Math.max.apply(null, vals);
+  const range = max - min;
+  const NS = "http://www.w3.org/2000/svg";
+  const wrap = el("div", "spark");
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("width", String(w));
+  svg.setAttribute("height", String(h));
+  svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", t("sparkAria").replace("{a}", String(vals[0])).replace("{b}", String(vals[vals.length - 1])));
+  const pts = vals.map((v, i) => {
+    const x = (i / (vals.length - 1)) * (w - 6) + 3;
+    const y = range === 0 ? h / 2 : h - 3 - ((v - min) / range) * (h - 6);
+    return x.toFixed(1) + "," + y.toFixed(1);
+  });
+  const line = document.createElementNS(NS, "polyline");
+  line.setAttribute("points", pts.join(" "));
+  line.setAttribute("class", "spark-line");
+  svg.appendChild(line);
+  const lastPt = pts[pts.length - 1].split(",");
+  const dot = document.createElementNS(NS, "circle");
+  dot.setAttribute("cx", lastPt[0]);
+  dot.setAttribute("cy", lastPt[1]);
+  dot.setAttribute("r", "2.6");
+  dot.setAttribute("class", "spark-dot");
+  svg.appendChild(dot);
+  wrap.appendChild(svg);
+  wrap.appendChild(el("p", "spark-cap", t("sparkCap")));
+  return wrap;
+}
+
+/* Zone builders share one shape in two skins: the strip uses .zone
  * classes, the drop cards use .dzone classes. Signal (intent) and
- * minted (fact) are always separate zones. */
-function zoneSignal(count, p) {
+ * minted (fact) are always separate zones, in separate colors, with
+ * separate shapes: tally marks for people, a measuring bar for the
+ * machine fact. */
+function zoneSignal(entry, p, maxTicks) {
   const z = el("div", p + " " + p + "-signal");
   z.appendChild(el("p", p + "-key", t("zoneSignal")));
+  if (entry.sig && entry.sig.conflict) {
+    // Two independent board reads at one pinned block disagreed on
+    // this drop: the queue number is hidden, never resolved by
+    // picking a side (K-03, same rule as the counters).
+    z.appendChild(el("p", p + "-missing", t("unverified")));
+    z.appendChild(el("p", p + "-note", t("unverifiedWhy")));
+    const sl = sigSrcLine(entry, p);
+    if (sl) z.appendChild(sl);
+    return z;
+  }
+  const count = Number(entry.drop.signalCount);
+  const prev = prevNums.get("sig-" + entry.id);
   z.appendChild(el("p", p + "-big", String(count)));
   z.appendChild(el("p", p + "-note", t("zoneSignalNote")));
+  z.appendChild(tallyTicks(entry, maxTicks, prev === undefined ? count : prev));
+  const sl = sigSrcLine(entry, p);
+  if (sl) z.appendChild(sl);
+  if (prev !== undefined && prev !== count) z.classList.add("just-changed");
+  prevNums.set("sig-" + entry.id, count);
   return z;
 }
 
@@ -1400,7 +1668,22 @@ function zoneMinted(entry, p) {
   const big = c.cap !== null ? String(c.minted) + " / " + String(c.cap) : String(c.minted);
   z.appendChild(el("p", p + "-big", big));
   z.appendChild(el("p", p + "-note", t("zoneMintedNote")));
+  if (c.cap !== null && c.cap > 0n) {
+    // The measuring bar: minted share of the cap, drawn by scaling
+    // a full-width fill so no layout property is ever animated.
+    const bar = el("div", "mintbar");
+    const fill = el("div", "mintbar-fill");
+    const pct = Math.min(1, Number(c.minted) / Number(c.cap));
+    fill.style.transform = "scaleX(" + pct.toFixed(4) + ")";
+    bar.appendChild(fill);
+    z.appendChild(bar);
+  }
+  const spark = sparkline(entry, p === "zone" ? 264 : 168, p === "zone" ? 36 : 26);
+  if (spark) z.appendChild(spark);
   z.appendChild(counterSrcLine(entry, c, p));
+  const prevM = prevNums.get("mint-" + entry.id);
+  if (prevM !== undefined && prevM !== String(c.minted)) z.classList.add("just-changed");
+  prevNums.set("mint-" + entry.id, String(c.minted));
   return z;
 }
 
@@ -1464,23 +1747,38 @@ function burnParas(entry, cls) {
   return out;
 }
 
-function queueDots(entry, max) {
-  const count = Number(entry.drop.signalCount);
-  const wrap = el("div", "queue-dots");
-  wrap.setAttribute("role", "img");
-  wrap.setAttribute("aria-label", count + " " + t("queuePeople"));
-  const shown = Math.min(count, max);
-  for (let i = 0; i < shown; i++) {
-    const d = el("span", "qdot");
-    if (i === 0 && entry.mySignal === true) d.classList.add("is-me");
-    wrap.appendChild(d);
-  }
-  if (count > max) wrap.appendChild(el("span", "qdot-more", "+" + (count - max)));
-  return wrap;
-}
-
 function statusClass(key) {
   return { open: "st-open", upcoming: "st-soon", unknown: "st-soon", closed: "st-closed" }[key];
+}
+
+/* Countdown text for a window edge (design v2, F-07): the only
+ * text on the page that ticks every second, updated by the light
+ * interval at the bottom of this file, which touches nothing but
+ * these text nodes and pauses while the tab is hidden. It describes
+ * the window state, never a data number. */
+function fmtCd(totalSec) {
+  const s = Math.max(0, Math.floor(totalSec));
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const ss = s % 60;
+  if (d > 0) return d + "d " + h + "h";
+  if (h > 0) return h + "h " + m + "m";
+  return m + ":" + String(ss).padStart(2, "0");
+}
+
+function cdText(kind, ts) {
+  const diff = Number(ts) - Math.floor(Date.now() / 1000);
+  if (diff <= 0) return "";
+  return t(kind === "opens" ? "cdOpens" : "cdCloses").replace("{t}", fmtCd(diff));
+}
+
+function cdElement(kind, ts, cls) {
+  const s = el("p", cls);
+  s.dataset.cdKind = kind;
+  s.dataset.cdTs = String(ts);
+  s.textContent = cdText(kind, ts);
+  return s;
 }
 
 function renderFeatured() {
@@ -1494,24 +1792,27 @@ function renderFeatured() {
   slot.hidden = false;
   if (board.failed) {
     slot.textContent = "";
-    const plate = el("article", "plate");
-    plate.appendChild(el("p", "plate-status", t("boardErrorTitle")));
-    slot.appendChild(plate);
+    const strip = el("article", "strip");
+    const head = el("div", "strip-head");
+    head.appendChild(el("p", "plate-status", t("boardErrorTitle")));
+    strip.appendChild(head);
+    slot.appendChild(strip);
     caption.hidden = true;
     return;
   }
   if (!board.loaded || board.drops.length === 0) {
     caption.hidden = true;
-    return; // keep the loading plate from the static HTML
+    return; // keep the skeleton strip from the static HTML
   }
   slot.textContent = "";
   const featuredPool = visibleBoardDrops().length ? visibleBoardDrops() : board.drops;
   const entry = featuredPool.reduce((a, b) => (b.drop.signalCount > a.drop.signalCount ? b : a), featuredPool[0]);
-  const plate = el("article", "plate");
-  plate.dataset.dropId = String(entry.id);
+  const strip = el("article", "strip");
+  strip.dataset.dropId = String(entry.id);
   const st = windowStatus(entry.drop);
-  plate.appendChild(el("p", "plate-status", statusText(st) + (isCalibration(entry) ? " · " + t("testDataBadge") : "")));
-  plate.appendChild(el("h3", "plate-label", entry.drop.label));
+  const head = el("div", "strip-head");
+  head.appendChild(el("p", "plate-status", statusText(st) + (isCalibration(entry) ? " · " + t("testDataBadge") : "")));
+  head.appendChild(el("h3", "plate-label", entry.drop.label));
   const win = el("p", "plate-window");
   if (entry.drop.opensAt > 0) {
     win.appendChild(document.createTextNode(t("opensAt") + " " + formatDateTime(entry.drop.opensAt) + " · "));
@@ -1522,23 +1823,76 @@ function renderFeatured() {
   if (entry.drop.opensAt === 0 && entry.drop.closesAt === 0) {
     win.appendChild(document.createTextNode(t("stUnknown")));
   }
-  plate.appendChild(win);
-  plate.appendChild(queueDots(entry, 24));
-  const zones = el("div", "plate-zones");
-  zones.appendChild(zoneSignal(entry.drop.signalCount, "zone"));
+  head.appendChild(win);
+  if (st === "upcoming" && entry.drop.opensAt > 0) {
+    head.appendChild(cdElement("opens", entry.drop.opensAt, "plate-cd"));
+  } else if (st === "open" && entry.drop.closesAt > 0) {
+    head.appendChild(cdElement("closes", entry.drop.closesAt, "plate-cd"));
+  }
+  strip.appendChild(head);
+  const zones = el("div", "strip-zones");
+  zones.appendChild(zoneSignal(entry, "zone", 60));
   zones.appendChild(zoneMinted(entry, "zone"));
-  plate.appendChild(zones);
   const burn = el("div", "plate-burn");
   for (const p of burnParas(entry, "")) burn.appendChild(p);
-  plate.appendChild(burn);
-  slot.appendChild(plate);
+  zones.appendChild(burn);
+  strip.appendChild(zones);
+  slot.appendChild(strip);
   caption.hidden = false;
   caption.textContent = t("featuredCaption");
+}
+
+/* Shareable deep link to one drop (F-02): keeps the network mode,
+ * adds the drop id; the receiving page scrolls to the card and
+ * highlights it once. */
+function dropLink(id) {
+  const u = new URL(window.location.href);
+  u.searchParams.set("drop", String(id));
+  u.hash = "";
+  return u.toString();
+}
+
+/* The expandable per-drop detail (F-03): full provenance without
+ * leaving the board. Everything shown here is already read by the
+ * page; nothing new is fetched and nothing is inferred. */
+function detailSection(entry) {
+  const sec = el("section", "drop-detail");
+  const dl = el("dl", "detail-grid");
+  const add = (key, value) => {
+    const cell = el("div");
+    cell.appendChild(el("dt", null, key));
+    const dd = el("dd");
+    if (typeof value === "string") dd.textContent = value;
+    else dd.appendChild(value);
+    cell.appendChild(dd);
+    dl.appendChild(cell);
+  };
+  add(t("detailContract"), entry.drop.dropContract);
+  add(t("detailConvoy"), CONFIG.convoyAddress || "");
+  add(t("registrar"), entry.drop.registrar);
+  const winParts = [];
+  if (entry.drop.opensAt > 0) winParts.push(t("opensAt") + " " + formatDateTime(entry.drop.opensAt));
+  if (entry.drop.closesAt > 0) winParts.push(t("closesAt") + " " + formatDateTime(entry.drop.closesAt));
+  add(t("detailWindow"), winParts.length ? winParts.join(" · ") : t("stUnknown"));
+  add(t("detailSamples"), String(entry.samples.length));
+  const link = el("a", null, t("detailExplorer"));
+  link.href = CONFIG.chainProfile.blockExplorerUrls[0] + "/address/" + entry.drop.dropContract;
+  link.target = "_blank";
+  link.rel = "noopener";
+  add(t("detailExplorer"), link);
+  sec.appendChild(dl);
+  const big = sparkline(entry, 320, 44);
+  if (big) {
+    sec.appendChild(big);
+    sec.appendChild(el("p", "detail-note", t("sparkScale")));
+  }
+  return sec;
 }
 
 function dropCard(entry, nextId) {
   const card = el("article", "drop-card");
   card.dataset.dropId = String(entry.id);
+  card.id = "drop-" + entry.id;
   if (entry.id === nextId) card.classList.add("is-next");
   const top = el("div", "drop-top");
   top.appendChild(el("span", "drop-label", entry.drop.label));
@@ -1580,19 +1934,26 @@ function dropCard(entry, nextId) {
     wRow.appendChild(document.createTextNode(t("stUnknown")));
   }
   card.appendChild(wRow);
+  if (st === "upcoming" && entry.drop.opensAt > 0) {
+    card.appendChild(cdElement("opens", entry.drop.opensAt, "drop-cd"));
+  } else if (st === "open" && entry.drop.closesAt > 0) {
+    card.appendChild(cdElement("closes", entry.drop.closesAt, "drop-cd"));
+  }
   const rRow = el("p", "drop-window");
   rRow.appendChild(document.createTextNode(t("registrar") + ": "));
   rRow.appendChild(monoAddr(entry.drop.registrar));
   card.appendChild(rRow);
 
   const zones = el("div", "drop-zones");
-  zones.appendChild(zoneSignal(entry.drop.signalCount, "dzone"));
+  zones.appendChild(zoneSignal(entry, "dzone", 24));
   zones.appendChild(zoneMinted(entry, "dzone"));
-  card.appendChild(zones);
+  // The burn panel sits in the grid cell directly under the minted
+  // zone: the explanation lives beside the number it explains.
   const burnPanel = el("section", "burn-panel");
   burnPanel.setAttribute("aria-label", t("burnRate"));
   for (const p of burnParas(entry, "drop-burn")) burnPanel.appendChild(p);
-  card.appendChild(burnPanel);
+  zones.appendChild(burnPanel);
+  card.appendChild(zones);
 
   const actions = el("div", "drop-actions");
   if (entry.mySignal === true) {
@@ -1601,7 +1962,10 @@ function dropCard(entry, nextId) {
   let btn = null;
   let whyText = "";
   if (!account) {
-    btn = el("button", "btn btn-primary", t("signalBtn"));
+    // Same state honesty before connection: a not yet open drop
+    // shows the dashed queue button in every branch, never the
+    // solid open-drop primary.
+    btn = el("button", st === "upcoming" ? "btn btn-queue" : "btn btn-primary", t("signalBtn"));
     btn.type = "button";
     whyText = t("connectFirst");
     btn.addEventListener("click", () => connect());
@@ -1620,14 +1984,56 @@ function dropCard(entry, nextId) {
     btn.type = "button";
     btn.addEventListener("click", () => openSheet("withdraw", entry));
   } else if (CONFIG.convoyAddress) {
-    btn = el("button", "btn btn-primary", t("signalBtn"));
+    // A not-yet-open drop shows its state on the button itself: a
+    // dashed queue button, not the solid open-drop primary, with the
+    // explanation on the card. Queueing early stays possible,
+    // because recording intent before the window opens is the
+    // product's core; what changes is that the state is no longer
+    // dressed as if the drop were already open.
+    btn = el("button", st === "upcoming" ? "btn btn-queue" : "btn btn-primary", t("signalBtn"));
     btn.type = "button";
     if (board.isHolder === null || entry.mySignal === null) btn.disabled = true;
+    if (st === "upcoming") whyText = t("notOpenWhy");
     btn.addEventListener("click", () => openSheet("signal", entry));
   }
   if (btn) actions.appendChild(btn);
   card.appendChild(actions);
   if (whyText) card.appendChild(el("p", "why", whyText));
+
+  const tools = el("div", "drop-tools");
+  const watching = watchSet.has(entry.id);
+  const watchBtn = el("button", "btn-mini" + (watching ? " is-on" : ""), watching ? t("watchedBtn") : t("watchBtn"));
+  watchBtn.type = "button";
+  watchBtn.setAttribute("aria-pressed", watching ? "true" : "false");
+  watchBtn.addEventListener("click", () => toggleWatch(entry.id));
+  tools.appendChild(watchBtn);
+  const linkBtn = el("button", "btn-mini", t("copyLink"));
+  linkBtn.type = "button";
+  linkBtn.addEventListener("click", async () => {
+    const msg = $("card-msg-" + entry.id);
+    try {
+      await navigator.clipboard.writeText(dropLink(entry.id));
+      if (msg) {
+        msg.textContent = t("linkCopied");
+        msg.className = "form-msg is-ok";
+      }
+    } catch (e) {
+      if (msg) msg.textContent = dropLink(entry.id);
+    }
+  });
+  tools.appendChild(linkBtn);
+  const detBtn = el("button", "btn-mini", openDetails.has(entry.id) ? t("detailHide") : t("detailBtn"));
+  detBtn.type = "button";
+  detBtn.setAttribute("aria-expanded", openDetails.has(entry.id) ? "true" : "false");
+  detBtn.addEventListener("click", () => {
+    if (openDetails.has(entry.id)) openDetails.delete(entry.id);
+    else openDetails.add(entry.id);
+    renderBoard();
+  });
+  tools.appendChild(detBtn);
+  card.appendChild(tools);
+  if (watching) card.appendChild(el("p", "why", t("watchNote")));
+  if (openDetails.has(entry.id)) card.appendChild(detailSection(entry));
 
   const msg = el("p", "form-msg");
   msg.id = "card-msg-" + entry.id;
@@ -1641,18 +2047,20 @@ function renderChips() {
   const wrap = $("filter-chips");
   wrap.textContent = "";
   const base = visibleBoardDrops();
-  const counts = { all: base.length, open: 0, upcoming: 0, closed: 0 };
+  const counts = { all: base.length, open: 0, upcoming: 0, closed: 0, watched: 0 };
   for (const e of base) {
     const st = windowStatus(e.drop);
     if (st === "open" || st === "unknown") counts.open++;
     else if (st === "upcoming") counts.upcoming++;
     else counts.closed++;
+    if (watchSet.has(e.id)) counts.watched++;
   }
   const defs = [
     ["all", t("chipAll")],
     ["open", t("chipOpen")],
     ["upcoming", t("chipUpcoming")],
     ["closed", t("chipClosed")],
+    ["watched", t("chipWatched")],
   ];
   for (const [key, label] of defs) {
     const b = el("button", "chip" + (board.filter === key ? " is-on" : ""), label + " (" + counts[key] + ")");
@@ -1665,12 +2073,27 @@ function renderChips() {
   }
   const line = $("count-line");
   const visible = filteredDrops().length;
-  line.textContent = t("showing").replace("{x}", String(visible)).replace("{y}", String(base.length));
+  let text = t("showing").replace("{x}", String(visible)).replace("{y}", String(base.length));
+  if (board.totalDrops !== null && board.totalDrops > board.drops.length) {
+    text += " " + t("boardLimitNote")
+      .replace("{n}", String(board.drops.length))
+      .replace("{total}", String(board.totalDrops));
+  }
+  line.textContent = text;
+  const tn = $("testdata-note");
+  if (tn) {
+    const hiddenCount = board.drops.filter(isCalibration).length;
+    tn.textContent =
+      board.hideTestData && hiddenCount > 0
+        ? t("testHiddenNote").replace("{n}", String(hiddenCount))
+        : "";
+  }
 }
 
 function filteredDrops() {
   const base = sortedBoardDrops(visibleBoardDrops());
   if (board.filter === "all") return base;
+  if (board.filter === "watched") return base.filter((e) => watchSet.has(e.id));
   return base.filter((e) => {
     const st = windowStatus(e.drop);
     if (board.filter === "open") return st === "open" || st === "unknown";
@@ -1685,9 +2108,41 @@ function stateBlock(titleKey, bodyKey) {
   return d;
 }
 
+function skeletonCard() {
+  const d = el("div", "skl-card");
+  d.setAttribute("aria-hidden", "true");
+  d.appendChild(el("div", "skl skl-line skl-w50"));
+  d.appendChild(el("div", "skl skl-line skl-w80"));
+  d.appendChild(el("div", "skl skl-strip"));
+  return d;
+}
+
+/* The ?drop= deep link (F-02), honoured once: scroll to the card
+ * and ring it briefly so a shared link lands on its drop. */
+function maybeDeepLink() {
+  if (deepLinkDone || !board.loaded) return;
+  const raw = new URLSearchParams(window.location.search).get("drop");
+  if (raw === null) {
+    deepLinkDone = true;
+    return;
+  }
+  const id = Number(raw);
+  const cardEl = Number.isInteger(id)
+    ? document.querySelector('.drop-card[data-drop-id="' + id + '"]')
+    : null;
+  // Board is loaded; a missing card means the drop is filtered or
+  // hidden, and retrying on every render would never land.
+  deepLinkDone = true;
+  if (!cardEl) return;
+  cardEl.scrollIntoView({ block: "center" });
+  cardEl.classList.add("is-targeted");
+  setTimeout(() => cardEl.classList.remove("is-targeted"), 1700);
+}
+
 function renderBoard() {
   const list = $("drop-list");
   const asof = $("board-asof");
+  const dot = $("asof-dot");
   const testToggle = document.querySelector(".testdata-toggle");
   if (testToggle) testToggle.hidden = !CONFIG.convoyAddress;
   list.textContent = "";
@@ -1695,13 +2150,16 @@ function renderBoard() {
     renderChipsHidden();
     list.appendChild(stateBlock("notDeployedTitle", "notDeployedBody"));
     asof.textContent = "";
+    if (dot) dot.hidden = true;
     return;
   }
   $("filter-chips").hidden = false;
   if (!board.loaded && !board.failed) {
-    list.appendChild(stateBlock("boardLoadingTitle", "boardLoading"));
+    for (let i = 0; i < 3; i++) list.appendChild(skeletonCard());
+    if (dot) dot.hidden = true;
     return;
   }
+  if (dot) dot.hidden = board.failed;
   if (board.failed) {
     list.appendChild(stateBlock("boardErrorTitle", "boardErrorBody"));
     asof.textContent = "";
@@ -1727,11 +2185,14 @@ function renderBoard() {
       .replace("{block}", board.block.toLocaleString("id-ID"))
       .replace("{when}", when);
   }
+  maybeDeepLink();
 }
 
 function renderChipsHidden() {
   $("filter-chips").hidden = true;
   $("count-line").textContent = "";
+  const tn = $("testdata-note");
+  if (tn) tn.textContent = "";
 }
 
 function renderMine() {
@@ -1864,6 +2325,16 @@ async function openSheet(kind, entry) {
   fxRow.appendChild(el("dt", null, t("rowEffect")));
   fxRow.appendChild(el("dd", null, kind === "signal" ? t("signalEffect") : t("withdrawEffect")));
   rows.appendChild(fxRow);
+  if (CONFIG.convoyAddress) {
+    // The destination belongs on the sheet itself, not only inside
+    // the wallet's own prompt (docs/KEAMANAN-V2.md K-04).
+    const cRow = el("div", "row");
+    cRow.appendChild(el("dt", null, t("rowContract")));
+    const cDd = el("dd", null, truncateAddress(CONFIG.convoyAddress));
+    cDd.title = CONFIG.convoyAddress;
+    cRow.appendChild(cDd);
+    rows.appendChild(cRow);
+  }
   try {
     if (!CONFIG.convoyAddress) throw new Error("not deployed");
     const feeWei = await simulateAndEstimate(plan);
@@ -2130,8 +2601,47 @@ function updateFooter() {
   rl.textContent = CONFIG.agentIdRegistry;
 }
 
+/* Section navigation marker (design v2): the nav link for the
+ * section currently in view is marked, so the long page always
+ * says where the reader is. */
+function initScrollSpy() {
+  const links = document.querySelectorAll(".secnav-links a[data-sec]");
+  if (!("IntersectionObserver" in window) || links.length === 0) return;
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        links.forEach((a) => a.classList.toggle("is-active", a.dataset.sec === e.target.id));
+      }
+    },
+    { rootMargin: "-25% 0px -65% 0px" }
+  );
+  for (const id of ["board-panel", "mine-panel", "how-panel", "feedback-panel"]) {
+    const s = $(id);
+    if (s) spy.observe(s);
+  }
+}
+
+/* The one-second countdown ticker (F-07): touches only countdown
+ * text nodes, pauses while the tab is hidden, and asks for a board
+ * refresh when a window edge passes so the status itself updates. */
+function initCountdownTicker() {
+  setInterval(() => {
+    if (document.hidden) return;
+    let expired = false;
+    document.querySelectorAll("[data-cd-ts]").forEach((n) => {
+      const txt = cdText(n.dataset.cdKind, Number(n.dataset.cdTs));
+      if (txt === "") expired = true;
+      else if (n.textContent !== txt) n.textContent = txt;
+    });
+    if (expired) refreshBoard();
+  }, 1000);
+}
+
 (async function init() {
   applyLang("id");
+  initScrollSpy();
+  initCountdownTicker();
   const p = await ensureProvider();
   if (p) {
     try {

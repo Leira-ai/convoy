@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.7.0, Design v2 overhaul and product audit round (19 Nov 2026)
+
+- Full visual identity replacement on the owner's order after the
+  P-01 session verdicts: the old petrol plate and amber on charcoal
+  language is gone. New direction "Lembar Pantau Lapangan" (field
+  watch sheet), written down in `docs/DESAIN-V2.md` before building:
+  paper light theme as the designed primary, an ink dark theme as
+  its own surface, signal orange for people queueing and steel blue
+  for minted facts, 1px rules instead of shadows, radius 8 to 10.
+- The Queue Plate signature element evolved into the Strip Antrean:
+  tally marks grouped in fives, one per real person queueing, beside
+  a measuring bar for the minted share. Tally for people, bar for
+  the machine fact; the two zones never swap color, word, or shape.
+- Page structure answers the one long page verdict: a slim top bar
+  (brand, network, connect), a sticky section navigation with a
+  scrollspy marker (Radar, Antrean, Cara kerja, Masukan) that also
+  carries the language and theme tools, a compacted hero, and the
+  How it works section moved below the board and My queue.
+- Purposeful animation only, each with a stated job in DESAIN-V2.md:
+  a brightness pulse on a zone whose number changed, tally marks
+  entering, status color transitions, skeleton loading shaped like
+  the real strip and cards, sheet entry motion, the nav marker, one
+  live dot, and a deep link target ring. Numbers are never tweened
+  or moved. Everything is reduced under prefers-reduced-motion.
+- Features adopted through the written product audit in
+  `docs/FITUR-V2.md`, each scope-frozen first: session minted
+  sparkline per card (five verified samples minimum, session
+  labelled), shareable per-drop deep links with a copy button, an
+  expandable per-drop detail with full provenance, a local on-device
+  watchlist with a Watched filter chip (labelled as not a
+  notification), a per-second window countdown that only touches
+  text nodes, and a 200 drop board read bound with an honest count
+  line.
+- Security deep dive with fresh eyes in `docs/KEAMANAN-V2.md`:
+  the signal count is now verified against two RPC endpoints at one
+  pinned block when no wallet is connected (finding K-03), with a
+  per-drop conflict state that hides the number and a source line
+  under every queue number; the board read bound is the page-side
+  mitigation for open registration spam (K-01); the confirmation
+  sheet now shows the target contract (K-04). The contract itself
+  is unchanged, so the testnet deployment and its Sourcify exact
+  match stand. Written mainnet preconditions are recorded as K-08
+  to K-12 in the same document.
+- Recorded display debts cleared: the not yet open signal button is
+  a dashed queue button with its explanation on the card (queueing
+  early stays possible, it is the product's core; it no longer
+  dresses as an open drop), the burn panel sits in the grid cell
+  directly under the minted zone, and the 390px top bar carries
+  only three things.
+- Gate 1 contrast: 56 token pairs across both themes, all pass.
+
 ## 0.6.0, Fix round after the first human test session (19 Nov 2026)
 
 - The first human test session (tester P-01, the product owner and
